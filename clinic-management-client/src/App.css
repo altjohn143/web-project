@@ -26,11 +26,14 @@ body {
   position: fixed;
   inset: 0 auto 0 0;
   width: 260px;
+  height: 100vh;
+  height: 100dvh;
   padding: 29px 22px;
   background: #fbfaf5;
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   z-index: 20;
 }
 .brand {
@@ -58,6 +61,21 @@ body {
   display: flex;
   flex-direction: column;
   gap: 5px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sage) transparent;
+  padding-right: 5px;
+}
+.sidebar nav::-webkit-scrollbar {
+  width: 5px;
+}
+.sidebar nav::-webkit-scrollbar-thumb {
+  background: var(--sage);
+  border-radius: 999px;
 }
 .sidebar nav p {
   text-transform: uppercase;
@@ -120,6 +138,7 @@ body {
 }
 .logout {
   margin: 18px 8px 0;
+  flex: 0 0 auto;
   gap: 10px;
   color: #7d847f;
 }
