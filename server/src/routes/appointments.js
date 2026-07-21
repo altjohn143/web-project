@@ -77,7 +77,7 @@ router.get('/', async (req, res, next) => {
 router.post('/', rules, valid, async (req, res, next) => {
   try {
     const user = await currentUser(req);
-    if (user.role !== 'admin') return res.status(403).json({ message: 'Only administrators can create appointments' });
+    if (!['admin', 'superadmin'].includes(user.role)) return res.status(403).json({ message: 'Only administrators can create appointments' });
     const appointment = await Appointment.create({ ...req.body, status: 'Pending', createdBy: req.user.id });
     res.status(201).json(appointment);
   } catch (error) { next(error); }

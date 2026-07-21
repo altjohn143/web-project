@@ -32,3 +32,9 @@ The React app opens at `http://localhost:3000`; the API runs at `http://localhos
 
 - Vercel frontend root directory: `clinic-management-client`
 - Render backend root directory: `server`
+
+Render must define `MONGO_URI`, `JWT_SECRET`, `CLIENT_URL`,
+`SEED_SUPERADMIN1_PASSWORD`, and `SEED_SUPERADMIN2_PASSWORD`. The two initial
+accounts are `superadmin1@claracare.local` and
+`superadmin2@claracare.local`. Administrators and doctors are then created
+from the protected staff-management screens.
