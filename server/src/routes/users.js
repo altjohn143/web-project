@@ -3,6 +3,7 @@ const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+const specialties = ['Family Physicians', 'General Practitioners (GPs)', 'Internal Medicine Physicians (Internists)', 'Pediatricians', 'Obstetrician/Gynecologists (OB-GYNs)'];
 router.use(auth);
 const validate = (req, res, next) => { const errors = validationResult(req); return errors.isEmpty() ? next() : res.status(422).json({ errors: errors.array() }); };
 const rules = [
@@ -10,7 +11,7 @@ const rules = [
   body('email').isEmail().normalizeEmail(),
   body('password').matches(strongPassword).withMessage('Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.'),
   body('role').isIn(['admin', 'doctor']),
-  body('specialty').if(body('role').equals('doctor')).trim().isLength({ min: 2, max: 100 }),
+  body('specialty').if(body('role').equals('doctor')).isIn(specialties).withMessage('Select an approved medical specialty.'),
 ];
 router.get('/', async (req, res, next) => {
   try {
