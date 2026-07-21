@@ -15,9 +15,11 @@ import {
   ChevronRight,
   ClipboardPlus,
   Clock3,
+  DollarSign,
   Eye,
   EyeOff,
   HeartPulse,
+  FlaskConical,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -33,6 +35,7 @@ import {
 import { AuthProvider, useAuth } from "./AuthContext";
 import api from "./api";
 import { PatientsPage, RecordsPage } from "./DataPages";
+import { BillingPage, LaboratoryPage } from "./OperationsPages";
 import "./App.css";
 
 const blank = {
@@ -176,6 +179,24 @@ function AuthPage() {
 
 function Shell() {
   const { user, logout } = useAuth();
+  const role = user.role;
+  const isSuper = role === "superadmin";
+  const isAdmin = ["admin", "superadmin"].includes(role);
+  const appointmentAccess = ["superadmin", "admin", "receptionist", "doctor", "nurse"].includes(role);
+  const canSchedule = ["superadmin", "admin", "receptionist"].includes(role);
+  const recordAccess = ["superadmin", "admin", "doctor", "nurse"].includes(role);
+  const billingAccess = ["superadmin", "admin", "billing"].includes(role);
+  const laboratoryAccess = ["superadmin", "admin", "doctor", "nurse", "laboratory"].includes(role);
+  const staffAccess = ["superadmin", "admin"].includes(role);
+  const roleLabels = {
+    superadmin: "Superadmin",
+    admin: "Administrator",
+    receptionist: "Receptionist",
+    doctor: "Doctor portal",
+    nurse: "Nurse portal",
+    billing: "Billing / Cashier",
+    laboratory: "Laboratory staff",
+  };
   const [mobile, setMobile] = useState(false),
     [query, setQuery] = useState(""),
     [items, setItems] = useState([]),
@@ -187,6 +208,13 @@ function Shell() {
     [editing, setEditing] = useState(null),
     [error, setError] = useState("");
   const load = useCallback(async () => {
+    if (!appointmentAccess) {
+      setItems([]);
+      setTotal(0);
+      setPages(1);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError("");
@@ -203,7 +231,7 @@ function Shell() {
     } finally {
       setLoading(false);
     }
-  }, [page, query]);
+  }, [page, query, appointmentAccess]);
   useEffect(() => {
     const timer = setTimeout(load, 250);
     return () => clearTimeout(timer);
@@ -244,8 +272,6 @@ function Shell() {
     setEditing(item);
     setModal(true);
   };
-  const isSuper = user.role === "superadmin",
-    isAdmin = ["admin", "superadmin"].includes(user.role);
   return (
     <div className={`app-shell role-${user.role}`}>
       <aside className={mobile ? "sidebar open" : "sidebar"}>
@@ -266,7 +292,11 @@ function Shell() {
               ? "System administration"
               : isAdmin
                 ? "Administration"
-                : "Clinical workspace"}
+                : role === "billing"
+                  ? "Financial workspace"
+                  : role === "laboratory"
+                    ? "Laboratory workspace"
+                    : "Clinical workspace"}
           </p>
           <NavLink to="/">
             <LayoutDashboard />{" "}
@@ -276,10 +306,10 @@ function Shell() {
                 ? "Clinic overview"
                 : "My dashboard"}
           </NavLink>
-          <NavLink to="/appointments">
-            <CalendarDays /> {isAdmin ? "Appointments" : "My appointments"}{" "}
+          {appointmentAccess && <NavLink to="/appointments">
+            <CalendarDays /> {role === "doctor" ? "My appointments" : "Appointments"}{" "}
             <b>{total}</b>
-          </NavLink>
+          </NavLink>}
           <NavLink to="/patients">
             <Users /> Patients
           </NavLink>
@@ -288,14 +318,20 @@ function Shell() {
               <Stethoscope /> Doctors
             </NavLink>
           )}
-          {isSuper && (
+          {staffAccess && (
             <NavLink to="/staff">
-              <Users /> Admin accounts
+              <Users /> Staff accounts
             </NavLink>
           )}
-          <NavLink to="/records">
+          {recordAccess && <NavLink to="/records">
             <ClipboardPlus /> Medical records
-          </NavLink>
+          </NavLink>}
+          {billingAccess && <NavLink to="/billing">
+            <DollarSign /> Billing
+          </NavLink>}
+          {laboratoryAccess && <NavLink to="/laboratory">
+            <FlaskConical /> Laboratory
+          </NavLink>}
           <p>Account</p>
           <NavLink to="/profile">
             <UserRound /> Profile
@@ -330,13 +366,7 @@ function Shell() {
               }
             />
           </div>
-          <div className="role-badge">
-            {isSuper
-              ? "Superadmin"
-              : isAdmin
-                ? "Administrator"
-                : "Doctor portal"}
-          </div>
+          <div className="role-badge">{roleLabels[role] || role}</div>
           <NavLink to="/profile" className="profile-chip">
             <div>{initials(user.name)}</div>
             <span>
@@ -354,7 +384,7 @@ function Shell() {
                 items={items}
                 total={total}
                 onAdd={
-                  isAdmin
+                  canSchedule
                     ? () => {
                         setEditing(null);
                         setModal(true);
@@ -365,7 +395,7 @@ function Shell() {
               />
             }
           />
-          <Route
+          {appointmentAccess && <Route
             path="/appointments"
             element={
               <Appointments
@@ -376,21 +406,21 @@ function Shell() {
                 pages={pages}
                 setPage={setPage}
                 onAdd={
-                  isAdmin
+                  canSchedule
                     ? () => {
                         setEditing(null);
                         setModal(true);
                       }
                     : null
                 }
-                onEdit={openEdit}
-                onDelete={remove}
+                onEdit={role === "nurse" ? null : openEdit}
+                onDelete={canSchedule ? remove : null}
                 onStatus={changeStatus}
                 loading={loading}
                 error={error}
               />
             }
-          />
+          />}
           <Route path="/profile" element={<Profile />} />
           <Route
             path="/patients"
@@ -405,8 +435,8 @@ function Shell() {
           {isAdmin && (
             <Route path="/doctors" element={<Doctors user={user} />} />
           )}{" "}
-          {isSuper && <Route path="/staff" element={<StaffAccounts />} />}
-          <Route
+          {staffAccess && <Route path="/staff" element={<StaffAccounts user={user} />} />}
+          {recordAccess && <Route
             path="/records"
             element={
               <Module
@@ -415,7 +445,9 @@ function Shell() {
                 icon={<ClipboardPlus />}
               />
             }
-          />
+          />}
+          {billingAccess && <Route path="/billing" element={<BillingPage />} />}
+          {laboratoryAccess && <Route path="/laboratory" element={<LaboratoryPage />} />}
           {isAdmin && (
             <Route
               path="/settings"
@@ -458,6 +490,27 @@ function Dashboard({ user, items, onAdd, loading }) {
   useEffect(() => {
     api.get("/dashboard").then(({ data }) => setMetrics(data));
   }, []);
+  if (["billing", "laboratory"].includes(user.role)) {
+    const billing = user.role === "billing";
+    return (
+      <div className={`page operations-dashboard role-${user.role}`}>
+        <section className="welcome">
+          <div className="welcome-copy">
+            <div className="eyebrow"><span>01</span>{billing ? "Financial operations" : "Diagnostic operations"}</div>
+            <h1>{billing ? "Billing," : "Laboratory,"}<br/><em>in focus.</em></h1>
+            <p>{billing ? "Manage invoices, payment status, and patient billing records." : "Manage test requests, results, and patient laboratory records."}</p>
+          </div>
+          <div className="welcome-orbit">{billing ? <DollarSign /> : <FlaskConical />}</div>
+          <NavLink className="primary" to={billing ? "/billing" : "/laboratory"}>Open workspace <span>↗</span></NavLink>
+        </section>
+        <Ticker />
+        <section className="stats">
+          <article><div className="stat-icon">{billing ? <DollarSign /> : <FlaskConical />}</div><span>{billing ? "Invoices" : "Laboratory records"}</span><strong>{billing ? metrics.invoices || 0 : metrics.laboratory || 0}</strong><small>MongoDB records</small></article>
+          <article><div className="stat-icon"><Users /></div><span>Registered patients</span><strong>{metrics.patients}</strong><small>Patient directory</small></article>
+        </section>
+      </div>
+    );
+  }
   const doctor = user.role === "doctor";
   return (
     <div className={`page ${doctor ? "doctor-dashboard" : "admin-dashboard"}`}>
@@ -637,7 +690,7 @@ function AppointmentRow({ item, user, onView, onEdit, onDelete, onStatus }) {
       <span className={`status ${item.status.toLowerCase()}`}>
         {item.status}
       </span>
-      {onEdit ? (
+      {onView ? (
         <div className="row-actions workflow-actions">
           <button
             className="appointment-view"
@@ -646,7 +699,7 @@ function AppointmentRow({ item, user, onView, onEdit, onDelete, onStatus }) {
           >
             <Eye /> <span>View</span>
           </button>
-          {!final && (
+          {!final && onEdit && (
             <button onClick={() => onEdit(item)} aria-label="Edit appointment">
               <Pencil />
             </button>
@@ -675,7 +728,7 @@ function AppointmentRow({ item, user, onView, onEdit, onDelete, onStatus }) {
               </button>
             </>
           )}
-          {!doctor && !final && (
+          {!doctor && !final && onDelete && (
             <button onClick={() => onDelete(item._id)} aria-label="Delete">
               <Trash2 />
             </button>
@@ -1284,22 +1337,22 @@ function Doctors() {
     </div>
   );
 }
-function StaffAccounts() {
-  const [admins, setAdmins] = useState([]),
+function StaffAccounts({ user }) {
+  const [staff, setStaff] = useState([]),
     [error, setError] = useState(""),
     [open, setOpen] = useState(false);
   const load = useCallback(
     () =>
       api
-        .get("/users", { params: { role: "admin" } })
+        .get("/users")
         .then(({ data }) => {
-          setAdmins(data);
+          setStaff(data);
           setError("");
         })
         .catch((e) =>
           setError(
             e.response?.data?.message ||
-              "Unable to load administrator accounts.",
+              "Unable to load staff accounts.",
           ),
         ),
     [],
@@ -1311,46 +1364,48 @@ function StaffAccounts() {
     <div className="page">
       <section className="subhero">
         <div className="eyebrow">
-          <span>06</span> Superadmin control
+          <span>06</span> Account management
         </div>
         <h1>
-          Admin accounts,
+          Staff accounts,
           <br />
           <em>governed.</em>
         </h1>
         <button className="primary" onClick={() => setOpen(true)}>
-          Create admin ↗
+          Add staff ↗
         </button>
       </section>
       {error && <div className="form-error api-error">{error}</div>}
       <div className="data-table staff-table">
-        {admins.length ? (
-          admins.map((admin) => (
-            <div className="data-row" key={admin._id}>
+        {staff.length ? (
+          staff.map((member) => (
+            <div className="data-row" key={member._id}>
               <div className="data-icon">
                 <Users />
               </div>
               <div>
-                <b>{admin.name}</b>
-                <span>{admin.email}</span>
+                <b>{member.name}</b>
+                <span>{member.email}</span>
               </div>
               <div>
                 <small>Role</small>
-                <span>Administrator</span>
+                <span>{roleName(member.role)}</span>
               </div>
               <div>
                 <small>Created</small>
-                <span>{new Date(admin.createdAt).toLocaleDateString()}</span>
+                <span>{new Date(member.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
           ))
         ) : (
-          <div className="empty">No administrator accounts yet.</div>
+          <div className="empty">No staff accounts yet.</div>
         )}
       </div>
       {open && (
         <AccountModal
-          role="admin"
+          roles={user.role === "superadmin"
+            ? ["admin", "receptionist", "doctor", "nurse", "billing", "laboratory"]
+            : ["receptionist", "doctor", "nurse", "billing", "laboratory"]}
           onClose={() => setOpen(false)}
           onCreated={() => {
             setOpen(false);
@@ -1361,13 +1416,23 @@ function StaffAccounts() {
     </div>
   );
 }
-function AccountModal({ role, onClose, onCreated }) {
+const roleName = (role) => ({
+  admin: "Administrator",
+  receptionist: "Receptionist",
+  doctor: "Doctor",
+  nurse: "Nurse",
+  billing: "Billing / Cashier",
+  laboratory: "Laboratory Staff",
+}[role] || role);
+
+function AccountModal({ role, roles, onClose, onCreated }) {
   const [form, setForm] = useState({
       name: "",
       email: "",
       password: "",
       confirm: "",
       specialty: "",
+      role: role || roles?.[0] || "receptionist",
     }),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
@@ -1382,11 +1447,12 @@ function AccountModal({ role, onClose, onCreated }) {
       return setError("Passwords do not match.");
     try {
       setBusy(true);
+      const accountRole = role || form.role;
       await api.post("/users", {
         name: form.name,
         email: form.email,
         password: form.password,
-        role,
+        role: accountRole,
         specialty: form.specialty,
       });
       onCreated();
@@ -1394,7 +1460,7 @@ function AccountModal({ role, onClose, onCreated }) {
       setError(
         e.response?.data?.message ||
           e.response?.data?.errors?.[0]?.msg ||
-          `Unable to create ${role} account.`,
+          `Unable to create ${roleName(role || form.role)} account.`,
       );
     } finally {
       setBusy(false);
@@ -1407,7 +1473,15 @@ function AccountModal({ role, onClose, onCreated }) {
           <X />
         </button>
         <div className="eyebrow">Authorized account creation</div>
-        <h2>Add {role}</h2>
+        <h2>Add {roleName(role || form.role)}</h2>
+        {roles && (
+          <label>
+            Staff role
+            <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value, specialty: "" })}>
+              {roles.map((value) => <option key={value} value={value}>{roleName(value)}</option>)}
+            </select>
+          </label>
+        )}
         <label>
           Full name
           <input
@@ -1426,7 +1500,7 @@ function AccountModal({ role, onClose, onCreated }) {
             required
           />
         </label>
-        {role === "doctor" && (
+        {(role || form.role) === "doctor" && (
           <label>
             Medical specialty
             <select
@@ -1468,7 +1542,7 @@ function AccountModal({ role, onClose, onCreated }) {
         </div>
         {error && <div className="form-error">{error}</div>}
         <button className="primary full" disabled={busy}>
-          {busy ? "Creating…" : `Create ${role} account`}
+          {busy ? "Creating…" : `Create ${roleName(role || form.role)} account`}
         </button>
       </form>
     </div>

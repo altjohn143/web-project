@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import api from "./api";
+import { useAuth } from "./AuthContext";
 
 const patientBlank = {
   firstName: "",
@@ -55,6 +56,12 @@ export function RecordsPage() {
 }
 
 function CrudPage({ type, title, icon, blank }) {
+  const { user } = useAuth();
+  const canWrite =
+    type === "patients"
+      ? ["superadmin", "admin", "receptionist"].includes(user.role)
+      : ["superadmin", "admin", "doctor"].includes(user.role);
+  const canDelete = ["superadmin", "admin"].includes(user.role);
   const [items, setItems] = useState([]),
     [page, setPage] = useState(1),
     [pages, setPages] = useState(1),
@@ -104,7 +111,7 @@ function CrudPage({ type, title, icon, blank }) {
           {title},<br />
           <em>organized.</em>
         </h1>
-        <button
+        {canWrite && <button
           className="primary"
           onClick={() => {
             setEditing(null);
@@ -112,7 +119,7 @@ function CrudPage({ type, title, icon, blank }) {
           }}
         >
           Add record ↗
-        </button>
+        </button>}
       </section>
       <div className="module-search">
         <input
@@ -167,7 +174,7 @@ function CrudPage({ type, title, icon, blank }) {
                 >
                   <Eye /> <span>View</span>
                 </button>
-                <button
+                {canWrite && <button
                   onClick={() => {
                     setEditing(item);
                     setOpen(true);
@@ -175,10 +182,10 @@ function CrudPage({ type, title, icon, blank }) {
                   aria-label="Edit"
                 >
                   <Pencil />
-                </button>
-                <button onClick={() => remove(item._id)} aria-label="Delete">
+                </button>}
+                {canDelete && <button onClick={() => remove(item._id)} aria-label="Delete">
                   <Trash2 />
-                </button>
+                </button>}
               </div>
             </div>
           ))

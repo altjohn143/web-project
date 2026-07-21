@@ -59,6 +59,7 @@ router.get('/', async (req, res, next) => {
   try {
     const user = await currentUser(req);
     if (!user) return res.status(401).json({ message: 'User not found' });
+    if (!['superadmin', 'admin', 'receptionist', 'doctor', 'nurse'].includes(user.role)) return res.status(403).json({ message: 'Appointment access denied' });
     const page = Math.max(+req.query.page || 1, 1);
     const limit = Math.min(+req.query.limit || 10, 50);
     const q = req.query.q?.trim();
@@ -77,7 +78,7 @@ router.get('/', async (req, res, next) => {
 router.post('/', rules, valid, async (req, res, next) => {
   try {
     const user = await currentUser(req);
-    if (!['admin', 'superadmin'].includes(user.role)) return res.status(403).json({ message: 'Only administrators can create appointments' });
+    if (!['admin', 'superadmin', 'receptionist'].includes(user.role)) return res.status(403).json({ message: 'Appointment scheduling access required' });
     const appointment = await Appointment.create({ ...req.body, status: 'Pending', createdBy: req.user.id });
     res.status(201).json(appointment);
   } catch (error) { next(error); }
@@ -86,6 +87,7 @@ router.post('/', rules, valid, async (req, res, next) => {
 router.put('/:id', rules, valid, async (req, res, next) => {
   try {
     const user = await currentUser(req);
+    if (!['admin', 'superadmin', 'receptionist', 'doctor'].includes(user.role)) return res.status(403).json({ message: 'Appointment editing access denied' });
     const filter = { _id: req.params.id, ...(user.role === 'doctor' ? { doctor: user.name } : {}) };
     const current = await Appointment.findOne(filter).select('status');
     if (!current) return res.status(404).json({ message: 'Appointment not found or access denied' });
@@ -122,6 +124,7 @@ router.patch('/:id/status', async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
   try {
     const user = await currentUser(req);
+    if (!['admin', 'superadmin', 'receptionist'].includes(user.role)) return res.status(403).json({ message: 'Appointment deletion access denied' });
     const filter = { _id: req.params.id, ...(user.role === 'doctor' ? { doctor: user.name } : {}) };
     const current = await Appointment.findOne(filter);
     if (!current) return res.status(404).json({ message: 'Appointment not found or access denied' });

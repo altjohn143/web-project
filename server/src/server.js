@@ -53,27 +53,33 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/patients', require('./routes/patients'));
 app.use('/api/records', require('./routes/records'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/billing', require('./routes/billing'));
+app.use('/api/laboratory', require('./routes/laboratory'));
 app.get('/api/doctors', require('./middleware/auth'), async (_req, res, next) => { try { const User = require('./models/User'); const doctors = await User.find({ role: 'doctor' }).select('name email specialty role'); res.json(doctors); } catch (error) { next(error); } });
 app.get('/api/dashboard', require('./middleware/auth'), async (req, res, next) => {
   try {
     const Appointment = require('./models/Appointment');
     const Patient = require('./models/Patient');
     const Record = require('./models/MedicalRecord');
+    const Invoice = require('./models/Invoice');
+    const LabResult = require('./models/LabResult');
     const user = await User.findById(req.user.id).select('name role specialty');
     if (!user) return res.status(401).json({ message: 'User not found' });
     const appointmentFilter = user.role === 'doctor' ? { doctor: user.name } : {};
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const end = new Date(start); end.setDate(end.getDate() + 1);
-    const [appointments, patients, records, confirmed, completed, today] = await Promise.all([
+    const [appointments, patients, records, confirmed, completed, today, invoices, laboratory] = await Promise.all([
       Appointment.countDocuments(appointmentFilter),
       user.role === 'doctor' ? Patient.countDocuments({ assignedDoctors: user._id }) : Patient.countDocuments(),
       user.role === 'doctor' ? Record.countDocuments({ doctor: user._id }) : Record.countDocuments(),
       Appointment.countDocuments({ ...appointmentFilter, status: 'Confirmed' }),
       Appointment.countDocuments({ ...appointmentFilter, status: 'Completed' }),
       Appointment.countDocuments({ ...appointmentFilter, date: { $gte: start, $lt: end } }),
+      Invoice.countDocuments(user.role === 'billing' ? {} : {}),
+      LabResult.countDocuments(),
     ]);
-    res.json({ role: user.role, specialty: user.specialty, appointments, patients, records, confirmed, completed, today });
+    res.json({ role: user.role, specialty: user.specialty, appointments, patients, records, confirmed, completed, today, invoices, laboratory });
   } catch (error) { next(error); }
 });
 app.get('/api/health', (_req, res) => res.json({ status: 'healthy', service: 'ClaraCare API' }));

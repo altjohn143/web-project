@@ -1,0 +1,15 @@
+const router = require('express').Router();
+const { body, validationResult } = require('express-validator');
+const Invoice = require('../models/Invoice');
+const User = require('../models/User');
+const auth = require('../middleware/auth');
+router.use(auth);
+const allowed = ['superadmin', 'admin', 'billing'];
+const access = async (req, res, next) => { const user = await User.findById(req.user.id).select('role'); if (!user || !allowed.includes(user.role)) return res.status(403).json({ message: 'Billing access required' }); req.actor = user; next(); };
+const rules = [body('patient').isMongoId(), body('description').trim().isLength({ min: 2, max: 300 }), body('amount').isFloat({ min: 0 }).toFloat(), body('dueDate').isISO8601().toDate(), body('status').optional().isIn(['Unpaid', 'Paid', 'Void'])];
+const valid = (req, res, next) => { const errors = validationResult(req); return errors.isEmpty() ? next() : res.status(422).json({ errors: errors.array() }); };
+router.get('/', access, async (req, res, next) => { try { const page = Math.max(+req.query.page || 1, 1), limit = Math.min(+req.query.limit || 10, 50), q = req.query.q?.trim(); let filter = {}; if (q) { const Patient = require('../models/Patient'); const ids = await Patient.find({ $or: [{ firstName: { $regex: q, $options: 'i' } }, { lastName: { $regex: q, $options: 'i' } }] }).distinct('_id'); filter = { $or: [{ patient: { $in: ids } }, { description: { $regex: q, $options: 'i' } }, { status: { $regex: q, $options: 'i' } }] }; } const [data, total] = await Promise.all([Invoice.find(filter).populate('patient', 'firstName lastName email phone').sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit), Invoice.countDocuments(filter)]); res.json({ data, total, page, pages: Math.max(Math.ceil(total / limit), 1) }); } catch (error) { next(error); } });
+router.post('/', access, rules, valid, async (req, res, next) => { try { res.status(201).json(await Invoice.create({ ...req.body, paymentDate: req.body.status === 'Paid' ? new Date() : undefined, createdBy: req.user.id })); } catch (error) { next(error); } });
+router.put('/:id', access, rules, valid, async (req, res, next) => { try { const update = { ...req.body, paymentDate: req.body.status === 'Paid' ? new Date() : undefined }; const item = await Invoice.findByIdAndUpdate(req.params.id, update, { new: true, runValidators: true }); if (!item) return res.status(404).json({ message: 'Invoice not found' }); res.json(item); } catch (error) { next(error); } });
+router.delete('/:id', access, async (req, res, next) => { try { const item = await Invoice.findByIdAndDelete(req.params.id); if (!item) return res.status(404).json({ message: 'Invoice not found' }); res.status(204).end(); } catch (error) { next(error); } });
+module.exports = router;

@@ -1,0 +1,17 @@
+const router = require('express').Router();
+const { body, validationResult } = require('express-validator');
+const LabResult = require('../models/LabResult');
+const Patient = require('../models/Patient');
+const User = require('../models/User');
+const auth = require('../middleware/auth');
+router.use(auth);
+const readRoles = ['superadmin', 'admin', 'doctor', 'nurse', 'laboratory'];
+const writeRoles = ['superadmin', 'admin', 'laboratory'];
+const actor = req => User.findById(req.user.id).select('role');
+const rules = [body('patient').isMongoId(), body('doctor').optional({ checkFalsy: true }).isMongoId(), body('testName').trim().isLength({ min: 2, max: 150 }), body('requestedDate').isISO8601().toDate(), body('status').isIn(['Requested', 'In Progress', 'Completed', 'Cancelled']), body('result').optional({ checkFalsy: true }).isLength({ max: 3000 })];
+const valid = (req, res, next) => { const errors = validationResult(req); return errors.isEmpty() ? next() : res.status(422).json({ errors: errors.array() }); };
+router.get('/', async (req, res, next) => { try { const user = await actor(req); if (!user || !readRoles.includes(user.role)) return res.status(403).json({ message: 'Laboratory access required' }); const page = Math.max(+req.query.page || 1, 1), limit = Math.min(+req.query.limit || 10, 50), q = req.query.q?.trim(), filters = []; if (user.role === 'doctor') { const ids = await Patient.find({ assignedDoctors: user._id }).distinct('_id'); filters.push({ patient: { $in: ids } }); } if (q) { const ids = await Patient.find({ $or: [{ firstName: { $regex: q, $options: 'i' } }, { lastName: { $regex: q, $options: 'i' } }] }).distinct('_id'); filters.push({ $or: [{ patient: { $in: ids } }, { testName: { $regex: q, $options: 'i' } }] }); } const filter = filters.length ? { $and: filters } : {}; const [data, total] = await Promise.all([LabResult.find(filter).populate('patient', 'firstName lastName email phone').populate('doctor', 'name specialty').sort({ requestedDate: -1 }).skip((page - 1) * limit).limit(limit), LabResult.countDocuments(filter)]); res.json({ data, total, page, pages: Math.max(Math.ceil(total / limit), 1) }); } catch (error) { next(error); } });
+router.post('/', rules, valid, async (req, res, next) => { try { const user = await actor(req); if (!user || !writeRoles.includes(user.role)) return res.status(403).json({ message: 'Laboratory write access required' }); res.status(201).json(await LabResult.create({ ...req.body, doctor: req.body.doctor || undefined, createdBy: req.user.id })); } catch (error) { next(error); } });
+router.put('/:id', rules, valid, async (req, res, next) => { try { const user = await actor(req); if (!user || !writeRoles.includes(user.role)) return res.status(403).json({ message: 'Laboratory write access required' }); const item = await LabResult.findByIdAndUpdate(req.params.id, { ...req.body, doctor: req.body.doctor || undefined }, { new: true, runValidators: true }); if (!item) return res.status(404).json({ message: 'Laboratory record not found' }); res.json(item); } catch (error) { next(error); } });
+router.delete('/:id', async (req, res, next) => { try { const user = await actor(req); if (!user || !writeRoles.includes(user.role)) return res.status(403).json({ message: 'Laboratory write access required' }); const item = await LabResult.findByIdAndDelete(req.params.id); if (!item) return res.status(404).json({ message: 'Laboratory record not found' }); res.status(204).end(); } catch (error) { next(error); } });
+module.exports = router;

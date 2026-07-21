@@ -1,0 +1,2 @@
+const mongoose = require('mongoose');
+module.exports = mongoose.model('Invoice', new mongoose.Schema({ patient: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true }, description: { type: String, required: true, trim: true, maxlength: 300 }, amount: { type: Number, required: true, min: 0 }, dueDate: { type: Date, required: true }, status: { type: String, enum: ['Unpaid', 'Paid', 'Void'], default: 'Unpaid' }, paymentDate: Date, createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true } }, { timestamps: true }));

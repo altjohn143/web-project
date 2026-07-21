@@ -2346,3 +2346,24 @@ header {
     display: none;
   }
 }
+/* Role-specific operational modules */
+.operation-modal {
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+}
+.operation-modal textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+.operations-row {
+  grid-template-columns: 56px minmax(170px, 1.5fr) minmax(130px, 1fr) 120px auto;
+}
+.role-receptionist .role-badge { border-color: #8a623c; color: #8a623c; }
+.role-nurse .role-badge { border-color: #4d7485; color: #4d7485; }
+.role-billing .role-badge { border-color: #80672c; color: #80672c; }
+.role-laboratory .role-badge { border-color: #69548a; color: #69548a; }
+@media (max-width: 900px) {
+  .operations-row { grid-template-columns: 48px 1fr auto; }
+  .operations-row > div:nth-child(3),
+  .operations-row > div:nth-child(4) { display: none; }
+}
