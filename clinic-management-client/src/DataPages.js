@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, ClipboardPlus, Eye, Pencil, Trash2, Users, X } from 'lucide-react';
 import api from './api';
-import { useAuth } from './AuthContext';
 
 const patientBlank = { firstName: '', lastName: '', email: '', phone: '', birthDate: '', sex: 'Female', address: '' };
 const recordBlank = { patient: '', doctor: '', visitDate: '', diagnosis: '', treatment: '', notes: '' };
@@ -12,10 +11,8 @@ export function PatientsPage() { return <CrudPage type="patients" title="Patient
 export function RecordsPage() { return <CrudPage type="records" title="Medical records" icon={<ClipboardPlus />} blank={recordBlank} />; }
 
 function CrudPage({ type, title, icon, blank }) {
-  const { user } = useAuth();
   const [items, setItems] = useState([]), [page, setPage] = useState(1), [pages, setPages] = useState(1), [total, setTotal] = useState(0);
   const [q, setQ] = useState(''), [editing, setEditing] = useState(null), [viewing, setViewing] = useState(null), [open, setOpen] = useState(false), [error, setError] = useState('');
-  const doctor = user.role === 'doctor';
   const load = useCallback(async () => {
     try {
       const { data } = await api.get(`/${type}`, { params: { page, limit: 8, q } });
@@ -36,7 +33,7 @@ function CrudPage({ type, title, icon, blank }) {
         <div><small>{type === 'patients' ? 'Email' : 'Doctor'}</small><span>{type === 'patients' ? show(item.email) : show(item.doctor?.name)}</span></div>
         <div><small>{type === 'patients' ? 'Birth date' : 'Visit date'}</small><span>{showDate(type === 'patients' ? item.birthDate : item.visitDate)}</span></div>
         <div className="row-actions detail-actions">
-          {doctor && <button className="view-details" onClick={() => setViewing(item)} aria-label="View all details"><Eye /> <span>View</span></button>}
+          <button className="view-details" onClick={() => setViewing(item)} aria-label="View all details"><Eye /> <span>View</span></button>
           <button onClick={() => { setEditing(item); setOpen(true); }} aria-label="Edit"><Pencil /></button>
           <button onClick={() => remove(item._id)} aria-label="Delete"><Trash2 /></button>
         </div>
