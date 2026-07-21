@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, ClipboardPlus, Eye, Pencil, Trash2, Users, X } from 'lucide-react';
 import api from './api';
 
@@ -47,7 +48,7 @@ function CrudPage({ type, title, icon, blank }) {
 
 function DetailsModal({ type, item, onClose }) {
   const patient = type === 'patients' ? item : item.patient;
-  return <div className="modal-backdrop"><article className="modal details-modal" role="dialog" aria-modal="true" aria-label={`${type === 'patients' ? 'Patient' : 'Medical record'} details`}>
+  return createPortal(<div className="modal-backdrop details-backdrop"><article className="modal details-modal" role="dialog" aria-modal="true" aria-label={`${type === 'patients' ? 'Patient' : 'Medical record'} details`}>
     <button type="button" className="modal-x" onClick={onClose}><X /></button>
     <div className="eyebrow">Read-only clinic record</div>
     <h2>{type === 'patients' ? 'Patient details' : 'Medical record'}</h2>
@@ -69,7 +70,7 @@ function DetailsModal({ type, item, onClose }) {
       <div className="details-wide"><dt>Clinical notes</dt><dd>{show(item.notes)}</dd></div>
     </dl></section>}
     <button className="primary full" onClick={onClose}>Close details</button>
-  </article></div>;
+  </article></div>, document.body);
 }
 
 function DataModal({ type, item, blank, onClose, onSave }) {
