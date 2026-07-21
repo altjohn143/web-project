@@ -1,0 +1,2 @@
+const mongoose=require('mongoose');
+module.exports=mongoose.model('Patient',new mongoose.Schema({firstName:{type:String,required:true,trim:true},lastName:{type:String,required:true,trim:true},email:{type:String,trim:true,lowercase:true},phone:{type:String,required:true,trim:true},birthDate:{type:Date,required:true},sex:{type:String,enum:['Female','Male','Other'],required:true},address:{type:String,trim:true},assignedDoctors:[{type:mongoose.Schema.Types.ObjectId,ref:'User'}],createdBy:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true}},{timestamps:true}));

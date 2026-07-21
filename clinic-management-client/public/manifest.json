@@ -1,0 +1,16 @@
+{
+  "short_name": "ClaraCare",
+  "name": "ClaraCare Clinic Management System",
+  "icons": [
+    {
+      "src": "clinic-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#28736d",
+  "background_color": "#f2f7f4"
+}
