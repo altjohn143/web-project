@@ -52,6 +52,11 @@ async function syncCompletedAppointment(appointment, actorId) {
   appointment.patientRecord = patient._id;
   appointment.medicalRecord = record._id;
   await appointment.save();
+  const Invoice = require('../models/Invoice');
+  const fee = Number(process.env.CONSULTATION_FEE || 500);
+  if (!await Invoice.exists({ sourceType: 'Consultation', source: appointment._id })) {
+    await Invoice.create({ patient: patient._id, description: `Consultation with ${doctor.name}`, sourceType: 'Consultation', source: appointment._id, subtotal: fee, amount: fee, dueDate: new Date(), createdBy: actorId });
+  }
   return appointment;
 }
 

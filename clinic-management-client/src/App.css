@@ -2386,3 +2386,63 @@ header {
   .operations-row > div:nth-child(3),
   .operations-row > div:nth-child(4) { display: none; }
 }
+
+/* Connected clinic workflows */
+.workflow-hero .icon-button { align-self: flex-end; }
+.workflow-section { margin: 28px 0; border-top: 1px solid var(--line); padding-top: 22px; }
+.section-title { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:16px; }
+.section-title h3 { margin:4px 0 0; font-size:25px; }
+.compact-cards { display:grid; gap:10px; }
+.compact-cards article { display:flex; align-items:center; justify-content:space-between; gap:18px; border:1px solid var(--line); padding:15px 18px; background:var(--paper); }
+.compact-cards article div { display:flex; flex-direction:column; gap:4px; }
+.compact-cards span, .queue-card small { color:var(--muted); font-size:12px; }
+.primary.compact { padding:10px 16px; }
+.queue-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.queue-card { border:1px solid var(--line); background:var(--paper); padding:20px; display:grid; grid-template-columns:52px 1fr; gap:16px; position:relative; }
+.queue-card h3 { margin:0 0 5px; }
+.queue-card p { margin:0 0 10px; color:var(--muted); }
+.queue-card small { display:block; margin-top:9px; }
+.queue-number { width:48px;height:48px;border-radius:50%;background:var(--sage);color:var(--cream);display:grid;place-items:center;font-weight:800;font-size:18px; }
+.queue-actions { grid-column:1/-1; display:flex; flex-wrap:wrap; gap:8px; border-top:1px solid var(--line); padding-top:12px; }
+.queue-actions button, .inventory-grid button, .notification-list button { border:1px solid var(--ink); background:transparent; padding:8px 11px; font:inherit; font-size:11px; font-weight:700; text-transform:uppercase; cursor:pointer; }
+.queue-in-consultation { box-shadow:inset 5px 0 var(--orange); }
+.queue-completed { opacity:.82; }
+.workflow-modal { max-height:calc(100dvh - 35px); overflow-y:auto; }
+.workflow-modal textarea { min-height:76px; resize:vertical; }
+.repeat-form { border:1px solid var(--line); padding:14px; margin:12px 0; }
+.document-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.printable-card { background:#fff; border:1px solid var(--line); padding:28px; color:var(--ink); }
+.clinic-document-head { display:flex; align-items:center; gap:12px; padding-bottom:18px; border-bottom:2px solid var(--ink); margin-bottom:20px; }
+.clinic-document-head>svg { width:36px;height:36px;color:var(--sage); }
+.clinic-document-head div { display:flex;flex-direction:column; }
+.clinic-document-head div b { font-size:20px; }
+.clinic-document-head div span { font-size:11px;text-transform:uppercase;letter-spacing:.12em; }
+.clinic-document-head button { margin-left:auto; }
+.medicine-line { display:flex;flex-direction:column;gap:4px;border-bottom:1px solid var(--line);padding:13px 0; }
+.medicine-line small { color:var(--muted); }
+.signature-line { margin:55px 0 10px auto; border-top:1px solid var(--ink); padding-top:7px; width:220px; display:flex;flex-direction:column;text-align:center; }
+.signature-line small { color:var(--muted); }
+.inventory-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px; }
+.inventory-grid article { background:var(--paper);border:1px solid var(--line);padding:20px;display:flex;flex-direction:column;gap:13px; }
+.inventory-grid article>svg { color:var(--sage); }
+.inventory-grid h3 { margin:5px 0; }
+.inventory-grid article span { display:block;color:#a14635;font-size:11px;font-weight:800;text-transform:uppercase;margin-top:4px; }
+.inventory-grid article>div:last-child { display:flex;gap:7px;margin-top:auto; }
+.inventory-alert { box-shadow:inset 5px 0 #b65042; }
+.document-builder { display:grid;grid-template-columns:1fr 1fr;gap:16px;background:var(--paper);border:1px solid var(--line);padding:20px;margin-bottom:20px; }
+.official-document { max-width:820px;margin:auto;line-height:1.7; }
+.official-document h2 { text-align:center;text-transform:uppercase;letter-spacing:.08em;margin:35px 0; }
+.notification-list { display:grid;gap:10px; }
+.notification-list article { background:var(--paper);border:1px solid var(--line);padding:17px;display:grid;grid-template-columns:35px 1fr auto;gap:12px;align-items:start; }
+.notification-list article.unread { border-left:5px solid var(--orange); }
+.notification-list h3,.notification-list p { margin:2px 0 5px; }
+.notification-list small { color:var(--muted); }
+.modal-print-actions { display:flex;gap:9px;margin-top:18px; }
+@media(max-width:900px){.queue-grid,.document-list,.inventory-grid{grid-template-columns:1fr}.document-builder{grid-template-columns:1fr}.compact-cards article{align-items:flex-start;flex-direction:column}.queue-card{grid-template-columns:45px 1fr}}
+@media print {
+  body * { visibility:hidden !important; }
+  .printable-card, .printable-card * { visibility:visible !important; }
+  .printable-card { position:absolute; inset:0; width:100%; max-width:none; border:0; box-shadow:none; }
+  .print-hide { display:none !important; }
+  @page { margin:18mm; }
+}

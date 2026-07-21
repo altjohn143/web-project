@@ -1,0 +1,13 @@
+const router = require('express').Router();
+const auth = require('../middleware/auth');
+const User = require('../models/User');
+const Item = require('../models/InventoryItem');
+const Notification = require('../models/Notification');
+router.use(auth);
+const allowed = ['superadmin','admin','nurse','laboratory'];
+const guard = async (req,res,next) => { const user = await User.findById(req.user.id).select('role'); if (!user || !allowed.includes(user.role)) return res.status(403).json({ message: 'Inventory access denied' }); req.actor = user; next(); };
+router.get('/', guard, async (_req,res,next) => { try { res.json(await Item.find().sort({ category: 1, name: 1 })); } catch(e){next(e);} });
+router.post('/', guard, async (req,res,next) => { try { res.status(201).json(await Item.create({ ...req.body, createdBy: req.user.id, movements: req.body.quantity ? [{ type:'Received', quantity:req.body.quantity, note:'Opening stock', recordedBy:req.user.id }] : [] })); } catch(e){next(e);} });
+router.put('/:id', guard, async (req,res,next) => { try { const item=await Item.findByIdAndUpdate(req.params.id,req.body,{new:true,runValidators:true}); if(!item)return res.status(404).json({message:'Item not found'});res.json(item);}catch(e){next(e);} });
+router.post('/:id/movements', guard, async (req,res,next) => { try { const item=await Item.findById(req.params.id);if(!item)return res.status(404).json({message:'Item not found'});const qty=Number(req.body.quantity);const delta=req.body.type==='Used'?-qty:qty;if(item.quantity+delta<0)return res.status(422).json({message:'Insufficient stock'});item.quantity+=delta;item.movements.push({type:req.body.type,quantity:qty,note:req.body.note,recordedBy:req.user.id});await item.save();if(item.quantity<=item.reorderLevel)await Notification.create({roles:['superadmin','admin','nurse','laboratory'],type:'Inventory',title:'Low stock alert',message:`${item.name} has ${item.quantity} ${item.unit} remaining.`,link:'/inventory'});res.json(item);}catch(e){next(e);} });
+module.exports=router;

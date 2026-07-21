@@ -1,0 +1,2 @@
+const mongoose = require('mongoose');
+module.exports = mongoose.model('Notification', new mongoose.Schema({ user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, roles: [{ type: String }], type: { type: String, enum: ['Appointment', 'Follow-up', 'Laboratory', 'Billing', 'Inventory', 'System'], default: 'System' }, title: { type: String, required: true }, message: { type: String, required: true }, link: String, readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] }, { timestamps: true }));

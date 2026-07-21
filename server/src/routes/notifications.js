@@ -1,0 +1,13 @@
+const router=require('express').Router(),auth=require('../middleware/auth'),User=require('../models/User'),Notification=require('../models/Notification');
+const Appointment=require('../models/Appointment'),Encounter=require('../models/Encounter'),Invoice=require('../models/Invoice');router.use(auth);
+async function ensureReminders(user){
+  const now=new Date(),tomorrow=new Date(Date.now()+24*60*60*1000),week=new Date(Date.now()+7*24*60*60*1000);
+  if(['superadmin','admin','receptionist','doctor','nurse'].includes(user.role)){
+    const filter={date:{$gte:now,$lte:tomorrow},status:{$in:['Pending','Confirmed']},...(user.role==='doctor'?{doctor:user.name}:{})};
+    for(const appointment of await Appointment.find(filter).limit(20)){const title='Upcoming appointment reminder',message=`${appointment.patient} is scheduled ${appointment.date.toLocaleString()}.`;if(!await Notification.exists({title,message}))await Notification.create({user:user.role==='doctor'?user._id:undefined,roles:user.role==='doctor'?[]:['superadmin','admin','receptionist'],type:'Appointment',title,message,link:'/appointments'});}
+  }
+  if(['superadmin','admin','receptionist'].includes(user.role))for(const encounter of await Encounter.find({followUpDate:{$gte:now,$lte:week}}).populate('patient')){const title='Follow-up reminder',message=`${encounter.patient.firstName} ${encounter.patient.lastName} has a follow-up due ${encounter.followUpDate.toLocaleDateString()}.`;if(!await Notification.exists({title,message}))await Notification.create({roles:['superadmin','admin','receptionist'],type:'Follow-up',title,message,link:'/queue'});}
+  if(['superadmin','admin','billing'].includes(user.role)){const count=await Invoice.countDocuments({status:{$in:['Unpaid','Partially paid']}});if(count){const title='Unpaid balance alert',message=`${count} invoice${count===1?'':'s'} currently have an outstanding balance.`;if(!await Notification.exists({title,message}))await Notification.create({roles:['superadmin','admin','billing'],type:'Billing',title,message,link:'/billing'});}}
+}
+router.get('/',async(req,res,next)=>{try{const user=await User.findById(req.user.id).select('name role');await ensureReminders(user);res.json(await Notification.find({$or:[{user:user._id},{roles:user.role}]}).sort({createdAt:-1}).limit(50));}catch(e){next(e)}});
+router.patch('/:id/read',async(req,res,next)=>{try{const item=await Notification.findByIdAndUpdate(req.params.id,{$addToSet:{readBy:req.user.id}},{new:true});if(!item)return res.status(404).json({message:'Notification not found'});res.json(item)}catch(e){next(e)}});module.exports=router;

@@ -15,6 +15,7 @@ const schema = new mongoose.Schema({
   notes: { type: String, trim: true, maxlength: 2000 },
   patientRecord: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
   medicalRecord: { type: mongoose.Schema.Types.ObjectId, ref: 'MedicalRecord' },
+  followUpOf: { type: mongoose.Schema.Types.ObjectId, ref: 'Encounter' },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 }, { timestamps: true });
 module.exports = mongoose.model('Appointment', schema);

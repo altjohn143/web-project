@@ -36,6 +36,7 @@ import { AuthProvider, useAuth } from "./AuthContext";
 import api from "./api";
 import { PatientsPage, RecordsPage } from "./DataPages";
 import { BillingPage, LaboratoryPage } from "./OperationsPages";
+import { DocumentsPage, InventoryPage, NotificationsPage, PrescriptionsPage, QueuePage, ReferralsPage } from "./WorkflowPages";
 import "./App.css";
 
 const blank = {
@@ -188,6 +189,11 @@ function Shell() {
   const billingAccess = ["superadmin", "admin", "billing"].includes(role);
   const laboratoryAccess = ["superadmin", "admin", "doctor", "nurse", "laboratory"].includes(role);
   const staffAccess = ["superadmin", "admin"].includes(role);
+  const queueAccess = ["superadmin", "admin", "receptionist", "doctor", "nurse"].includes(role);
+  const prescriptionAccess = ["superadmin", "admin", "doctor", "nurse"].includes(role);
+  const referralAccess = ["superadmin", "admin", "receptionist", "doctor", "nurse"].includes(role);
+  const inventoryAccess = ["superadmin", "admin", "nurse", "laboratory"].includes(role);
+  const documentAccess = ["superadmin", "admin", "doctor", "nurse"].includes(role);
   const roleLabels = {
     superadmin: "Superadmin",
     admin: "Administrator",
@@ -310,6 +316,9 @@ function Shell() {
             <CalendarDays /> {role === "doctor" ? "My appointments" : "Appointments"}{" "}
             <b>{total}</b>
           </NavLink>}
+          {queueAccess && <NavLink to="/queue">
+            <Activity /> Live queue
+          </NavLink>}
           <NavLink to="/patients">
             <Users /> Patients
           </NavLink>
@@ -332,7 +341,22 @@ function Shell() {
           {laboratoryAccess && <NavLink to="/laboratory">
             <FlaskConical /> Laboratory
           </NavLink>}
+          {prescriptionAccess && <NavLink to="/prescriptions">
+            <ClipboardPlus /> Prescriptions
+          </NavLink>}
+          {referralAccess && <NavLink to="/referrals">
+            <Users /> Referrals
+          </NavLink>}
+          {inventoryAccess && <NavLink to="/inventory">
+            <ClipboardPlus /> Inventory
+          </NavLink>}
+          {documentAccess && <NavLink to="/documents">
+            <ClipboardPlus /> Documents
+          </NavLink>}
           <p>Account</p>
+          <NavLink to="/notifications">
+            <Activity /> Notifications
+          </NavLink>
           <NavLink to="/profile">
             <UserRound /> Profile
           </NavLink>
@@ -448,6 +472,12 @@ function Shell() {
           />}
           {billingAccess && <Route path="/billing" element={<BillingPage />} />}
           {laboratoryAccess && <Route path="/laboratory" element={<LaboratoryPage />} />}
+          {queueAccess && <Route path="/queue" element={<QueuePage />} />}
+          {prescriptionAccess && <Route path="/prescriptions" element={<PrescriptionsPage />} />}
+          {referralAccess && <Route path="/referrals" element={<ReferralsPage />} />}
+          {inventoryAccess && <Route path="/inventory" element={<InventoryPage />} />}
+          {documentAccess && <Route path="/documents" element={<DocumentsPage />} />}
+          <Route path="/notifications" element={<NotificationsPage />} />
           {isAdmin && (
             <Route
               path="/settings"
