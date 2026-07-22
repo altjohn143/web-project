@@ -18,7 +18,7 @@ export function AppointmentList({ items, loading }) {
         </NavLink>
       </div>
       {loading ? (
-        <div className="empty">Loading recordsâ€¦</div>
+        <div className="empty">Loading records...</div>
       ) : items.length ? (
         items.slice(0, 4).map((a) => <AppointmentRow key={a._id} item={a} />)
       ) : (
@@ -46,7 +46,7 @@ function AppointmentRow({ item, user, onView, onEdit, onDelete, onStatus }) {
         <small>Date</small>
         <b>
           {isNaN(date)
-            ? "â€”"
+            ? "-"
             : date.toLocaleDateString([], { month: "short", day: "numeric" })}
         </b>
       </div>
@@ -133,7 +133,7 @@ export function Appointments({
         </h1>
         {onAdd && (
           <button className="primary" onClick={onAdd}>
-            Add appointment â†—
+            Add appointment -&gt;
           </button>
         )}
       </section>
@@ -148,7 +148,7 @@ export function Appointments({
         </div>
         {error && <div className="form-error api-error">{error}</div>}
         {loading ? (
-          <div className="empty">Loadingâ€¦</div>
+          <div className="empty">Loading...</div>
         ) : (
           items.map((i) => (
             <AppointmentRow
@@ -182,7 +182,7 @@ export function Appointments({
 }
 function AppointmentDetails({ item, onClose }) {
   const date = new Date(item.date),
-    show = (value) => value || "â€”";
+    show = (value) => value || "-";
   return createPortal(
     <div className="modal-backdrop details-backdrop">
       <article
@@ -224,7 +224,7 @@ function AppointmentDetails({ item, onClose }) {
               <dd>
                 {item.birthDate
                   ? new Date(item.birthDate).toLocaleDateString()
-                  : "â€”"}
+                  : "-"}
               </dd>
             </div>
             <div>
@@ -237,7 +237,7 @@ function AppointmentDetails({ item, onClose }) {
             </div>
             <div>
               <dt>Date and time</dt>
-              <dd>{isNaN(date) ? "â€”" : date.toLocaleString()}</dd>
+              <dd>{isNaN(date) ? "-" : date.toLocaleString()}</dd>
             </div>
             <div>
               <dt>Assigned doctor</dt>
@@ -429,7 +429,7 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
               )}
               {doctors.map((d) => (
                 <option key={d._id} value={d.name}>
-                  {d.name} â€” {d.specialty}
+                  {d.name} - {d.specialty}
                 </option>
               ))}
             </select>
@@ -469,7 +469,7 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
         {error && <div className="form-error">{error}</div>}
         <button className="primary full" disabled={busy}>
           {busy
-            ? "Savingâ€¦"
+            ? "Saving..."
             : item
               ? "Save appointment details"
               : "Add pending appointment"}

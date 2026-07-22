@@ -27,7 +27,7 @@ export default function Dashboard({ user, items, onAdd, loading }) {
             <p>{billing ? "Manage invoices, payment status, and patient billing records." : "Manage test requests, results, and patient laboratory records."}</p>
           </div>
           <div className="welcome-orbit">{billing ? <DollarSign /> : <FlaskConical />}</div>
-          <NavLink className="primary" to={billing ? "/billing" : "/laboratory"}>Open workspace <span>â†—</span></NavLink>
+          <NavLink className="primary" to={billing ? "/billing" : "/laboratory"}>Open workspace <span>-&gt;</span></NavLink>
         </section>
         <Ticker />
         <section className="stats">
@@ -49,7 +49,7 @@ export default function Dashboard({ user, items, onAdd, loading }) {
           <h1>
             {doctor ? "Welcome, doctor." : "Clinic care,"}
             <br />
-            <em>{doctor ? "Letâ€™s begin." : "in focus."}</em>
+            <em>{doctor ? "Let's begin." : "in focus."}</em>
           </h1>
           <p>
             {doctor
@@ -61,13 +61,13 @@ export default function Dashboard({ user, items, onAdd, loading }) {
           {doctor ? <Stethoscope /> : <HeartPulse />}
           <small>
             {doctor
-              ? "CONSULT â€¢ CARE â€¢ FOLLOW UP â€¢"
-              : "CARE â€¢ CLARITY â€¢ COMMUNITY â€¢"}
+              ? "CONSULT / CARE / FOLLOW UP /"
+              : "CARE / CLARITY / COMMUNITY /"}
           </small>
         </div>
         {onAdd && (
           <button className="primary" onClick={onAdd}>
-            <CalendarDays /> New appointment <span>â†—</span>
+            <CalendarDays /> New appointment <span>-&gt;</span>
           </button>
         )}
       </section>
@@ -152,7 +152,7 @@ export default function Dashboard({ user, items, onAdd, loading }) {
 }
 function Ticker() {
   const text =
-    "PATIENT CARE âœ¦ APPOINTMENTS âœ¦ MEDICAL RECORDS âœ¦ CLINIC OPERATIONS âœ¦ ";
+    "PATIENT CARE / APPOINTMENTS / MEDICAL RECORDS / CLINIC OPERATIONS / ";
   return (
     <div className="ticker" aria-label="ClaraCare services">
       <div className="ticker-track">

@@ -147,7 +147,7 @@ export default function ProfilePage() {
             </p>
           )}
           <button className="primary" disabled={busy}>
-            {busy ? "Changingâ€¦" : "Change password"}
+            {busy ? "Changing..." : "Change password"}
           </button>
         </form>
       </div>

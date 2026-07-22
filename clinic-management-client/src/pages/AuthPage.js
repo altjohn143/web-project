@@ -77,7 +77,7 @@ export default function AuthPage() {
         </label>
         {error && <div className="form-error">{error}</div>}
         <button className="primary full" disabled={busy}>
-          {busy ? "Please waitâ€¦" : "Sign in"} <span>â†—</span>
+          {busy ? "Please wait..." : "Sign in"} <span>-&gt;</span>
         </button>
         <p className="managed-account-note">
           Need access? Contact a ClaraCare administrator.

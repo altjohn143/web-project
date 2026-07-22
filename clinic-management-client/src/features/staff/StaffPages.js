@@ -36,7 +36,7 @@ export function Doctors() {
           <em>people who listen.</em>
         </h1>
         <button className="primary" onClick={() => setOpen(true)}>
-          Add doctor â†—
+          Add doctor -&gt;
         </button>
       </section>
       <div className="expertise-intro">
@@ -60,7 +60,7 @@ export function Doctors() {
                 Authorized practitioner access for assigned appointments,
                 patients, and medical records.
               </p>
-              <a href={`mailto:${doctor.email}`}>{doctor.email} â†—</a>
+              <a href={`mailto:${doctor.email}`}>{doctor.email} -&gt;</a>
             </div>
           </article>
         ))}
@@ -113,7 +113,7 @@ export function StaffAccounts({ user }) {
           <em>governed.</em>
         </h1>
         <button className="primary" onClick={() => setOpen(true)}>
-          Add staff â†—
+          Add staff -&gt;
         </button>
       </section>
       {error && <div className="form-error api-error">{error}</div>}
@@ -283,7 +283,7 @@ function AccountModal({ role, roles, onClose, onCreated }) {
         </div>
         {error && <div className="form-error">{error}</div>}
         <button className="primary full" disabled={busy}>
-          {busy ? "Creatingâ€¦" : `Create ${roleName(role || form.role)} account`}
+          {busy ? "Creating..." : `Create ${roleName(role || form.role)} account`}
         </button>
       </form>
     </div>
