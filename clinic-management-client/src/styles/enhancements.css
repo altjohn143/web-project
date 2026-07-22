@@ -1,0 +1,661 @@
+.details-grid div {
+  min-width: 0;
+}
+
+.details-grid dt {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+
+.details-grid dd {
+  margin: 0;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.details-wide {
+  grid-column: 1/-1;
+}
+
+.clinical-details dd {
+  white-space: pre-wrap;
+}
+
+@media (max-width: 760px) {
+  .data-row:has(.detail-actions) {
+    grid-template-columns: 38px 1fr 100px;
+  }
+  .detail-actions {
+    min-width: 0;
+  }
+  .row-actions .view-details span {
+    display: none;
+  }
+  .row-actions .view-details {
+    width: 29px !important;
+    padding: 0;
+  }
+  .details-backdrop {
+    padding: 12px;
+  }
+  .details-modal {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+    padding: 22px;
+  }
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+  .details-wide {
+    grid-column: auto;
+  }
+}
+
+.expertise-intro {
+  max-width: 720px;
+  font:
+    24px/1.45 Georgia,
+    serif;
+  padding: 45px 0;
+}
+
+.doctor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--line);
+  margin-bottom: 50px;
+}
+
+.doctor-card {
+  padding: 30px;
+  min-height: 430px;
+  position: relative;
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.doctor-card:last-child {
+  border-right: 0;
+}
+
+.doctor-card > span {
+  font-size: 10px;
+}
+
+.doctor-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: var(--sage);
+  color: var(--cream);
+  display: grid;
+  place-items: center;
+  align-self: flex-end;
+}
+
+.doctor-avatar svg {
+  width: 40px;
+  height: 40px;
+}
+
+.doctor-card small {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--sage);
+  font-weight: 800;
+}
+
+.doctor-card h2 {
+  font:
+    700 clamp(30px, 4vw, 55px)/0.9 Arial,
+    sans-serif;
+  text-transform: uppercase;
+  letter-spacing: -0.06em;
+  margin: 12px 0;
+}
+
+.doctor-card p {
+  max-width: 460px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.doctor-card a {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--sage);
+  border-bottom: 1px solid;
+}
+
+.doctor-card:nth-child(2) .doctor-avatar {
+  background: var(--orange);
+}
+
+@media (max-width: 700px) {
+  .doctor-grid {
+    grid-template-columns: 1fr;
+  }
+  .doctor-card {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .doctor-card:last-child {
+    border-bottom: 0;
+  }
+}
+
+.appointment-modal {
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+.appointment-modal textarea {
+  min-height: 90px;
+  resize: vertical;
+  background: transparent;
+  border: 1px solid var(--ink);
+  padding: 11px;
+  font: inherit;
+}
+
+.completion-fields {
+  margin: 18px 0;
+  padding: 18px;
+  border: 1px solid var(--sage);
+  display: grid;
+  gap: 12px;
+}
+
+.completion-fields > p,
+.completion-warning {
+  margin: 0;
+  color: var(--sage);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.completion-fields label {
+  margin: 0;
+}
+
+.automatic-status {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 20px;
+  padding: 12px;
+  border: 1px solid var(--line);
+}
+
+.automatic-status > span {
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.automatic-status small {
+  color: var(--muted);
+}
+
+.workflow-actions {
+  width: auto;
+  flex-wrap: wrap;
+}
+
+.workflow-actions button {
+  width: auto !important;
+  border-radius: 999px !important;
+  padding: 0 9px;
+  text-transform: uppercase;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.workflow-actions button:first-child {
+  width: 29px !important;
+  padding: 0;
+}
+
+.workflow-actions .confirm-action {
+  border-color: var(--sage) !important;
+  color: var(--sage);
+}
+
+.workflow-actions .complete-action {
+  background: var(--sage);
+  color: var(--cream);
+  border-color: var(--sage) !important;
+}
+
+.workflow-actions .cancel-action {
+  border-color: #ad4f45 !important;
+  color: #ad4f45;
+}
+
+.appointment:has(.workflow-actions) {
+  grid-template-columns:
+    42px minmax(140px, 1fr) minmax(95px, 0.55fr)
+    65px 78px minmax(120px, auto);
+}
+
+.workflow-actions button.appointment-view {
+  width: auto !important;
+  padding: 0 9px;
+}
+
+.workflow-actions .appointment-view span {
+  display: inline;
+}
+
+.appointment:has(.workflow-actions) {
+  grid-template-columns:
+    42px minmax(140px, 1fr) minmax(95px, 0.55fr)
+    65px 78px minmax(175px, auto);
+}
+
+@media (max-width: 760px) {
+  .workflow-actions .appointment-view span {
+    display: none;
+  }
+  .workflow-actions button.appointment-view {
+    width: 29px !important;
+    padding: 0;
+  }
+}
+
+/* Motion system */
+.page {
+  animation: page-enter 0.65s cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.welcome-copy .eyebrow,
+.subhero .eyebrow {
+  animation: fade-rise 0.55s 0.08s both;
+}
+
+.welcome h1,
+.subhero h1 {
+  animation: title-reveal 0.85s 0.12s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+}
+
+.welcome-copy > p,
+.expertise-intro {
+  animation: fade-rise 0.65s 0.32s both;
+}
+
+.welcome .primary,
+.subhero .primary {
+  animation: fade-rise 0.6s 0.42s both;
+}
+
+.brand-mark {
+  transition:
+    transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
+    background 0.3s;
+}
+
+.brand:hover .brand-mark {
+  transform: rotate(-10deg) scale(1.08);
+}
+
+.sidebar {
+  animation: sidebar-enter 0.65s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+}
+
+.sidebar nav a {
+  position: relative;
+  overflow: hidden;
+  transition:
+    color 0.25s,
+    background 0.25s,
+    border-color 0.25s,
+    transform 0.25s;
+}
+
+.sidebar nav a:hover {
+  transform: translateX(5px);
+}
+
+.sidebar nav a svg {
+  transition: transform 0.3s;
+}
+
+.sidebar nav a:hover svg {
+  transform: rotate(-6deg) scale(1.1);
+}
+
+header {
+  animation: header-enter 0.55s 0.12s both;
+}
+
+.search {
+  transition:
+    box-shadow 0.25s,
+    transform 0.25s,
+    background 0.25s;
+}
+
+.search:focus-within {
+  background: var(--paper);
+  box-shadow: 0 8px 24px rgba(23, 54, 51, 0.09);
+  transform: translateY(-1px);
+}
+
+.profile-chip {
+  transition: transform 0.25s;
+}
+
+.profile-chip:hover {
+  transform: translateY(-2px);
+}
+
+.stats article {
+  opacity: 0;
+  animation: card-rise 0.6s cubic-bezier(0.2, 0.75, 0.2, 1) forwards;
+  transition:
+    background 0.3s,
+    transform 0.3s;
+}
+
+.stats article:nth-child(1) {
+  animation-delay: 0.22s;
+}
+
+.stats article:nth-child(2) {
+  animation-delay: 0.29s;
+}
+
+.stats article:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+.stats article:nth-child(4) {
+  animation-delay: 0.43s;
+}
+
+.stats article:hover {
+  background: var(--paper);
+  transform: translateY(-5px);
+}
+
+.stats article:hover .stat-icon {
+  transform: rotate(8deg) scale(1.08);
+}
+
+.stat-icon {
+  transition: transform 0.35s;
+}
+
+.content-grid,
+.full-card,
+.data-table,
+.profile-form,
+.doctor-grid {
+  animation: card-rise 0.7s 0.34s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+}
+
+.appointment,
+.data-row {
+  transition:
+    background 0.25s,
+    padding-left 0.3s,
+    transform 0.25s;
+}
+
+.appointment:hover,
+.data-row:hover {
+  background: rgba(255, 255, 255, 0.65);
+  padding-left: 29px;
+}
+
+.appointment .avatar,
+.data-icon {
+  transition: transform 0.3s;
+}
+
+.appointment:hover .avatar,
+.data-row:hover .data-icon {
+  transform: rotate(-7deg) scale(1.08);
+}
+
+.row-actions button,
+.appointment > button,
+.pagination button {
+  transition:
+    background 0.25s,
+    color 0.25s,
+    transform 0.25s;
+}
+
+.row-actions button:hover,
+.appointment > button:hover,
+.pagination button:not(:disabled):hover {
+  background: var(--ink) !important;
+  color: var(--cream) !important;
+  transform: rotate(5deg) scale(1.06);
+}
+
+.primary span {
+  display: inline-block;
+  transition: transform 0.3s;
+}
+
+.primary:hover span {
+  transform: rotate(45deg);
+}
+
+.primary:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.modal-backdrop {
+  animation: backdrop-in 0.25s both;
+}
+
+.modal {
+  animation: modal-in 0.45s cubic-bezier(0.18, 0.85, 0.3, 1.15) both;
+}
+
+.modal-x {
+  transition: transform 0.3s;
+}
+
+.modal-x:hover {
+  transform: rotate(90deg);
+}
+
+.doctor-card {
+  transition: background 0.35s;
+}
+
+.doctor-card:hover {
+  background: var(--paper);
+}
+
+.doctor-avatar {
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.doctor-card:hover .doctor-avatar {
+  transform: rotate(8deg) scale(1.07);
+}
+
+.auth-brand h1 {
+  animation: title-reveal 0.9s 0.15s both;
+}
+
+.auth-form {
+  animation: auth-form-in 0.7s 0.18s both;
+}
+
+.auth-orbit {
+  animation: slow-orbit 16s linear infinite;
+}
+
+.auth-orbit svg {
+  animation: counter-orbit 16s linear infinite;
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes title-reveal {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100%);
+    transform: translateY(45px);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0);
+    transform: none;
+  }
+}
+
+@keyframes card-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sidebar-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-35px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes header-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(35px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes auth-form-in {
+  from {
+    opacity: 0;
+    transform: translateX(35px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes slow-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes counter-orbit {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .ticker .ticker-track {
+    animation: none;
+  }
+  .welcome-orbit,
+  .auth-orbit,
+  .auth-orbit svg {
+    animation: none;
+  }
+}
+
+.workflow-actions button.appointment-view,
+.row-actions button.view-details {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
+  width: auto !important;
+  padding: 0 10px;
+}
+
+@media (max-width: 760px) {
+  .workflow-actions button.appointment-view,
+  .row-actions button.view-details {
+    width: 29px !important;
+    padding: 0;
+  }
+  .workflow-actions .appointment-view span,
+  .row-actions .view-details span {
+    display: none;
+  }
+}
+
+/* Role-specific operational modules */
+.operation-modal {
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+}
