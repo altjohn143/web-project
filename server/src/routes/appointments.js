@@ -6,7 +6,6 @@ const Patient = require('../models/Patient');
 const MedicalRecord = require('../models/MedicalRecord');
 const auth = require('../middleware/auth');
 
-router.use(auth);
 const rules = [
   body('patient').trim().isLength({ min: 2, max: 100 }),
   body('reason').trim().isLength({ min: 2, max: 200 }),
@@ -21,6 +20,25 @@ const valid = (req, res, next) => {
   return errors.isEmpty() ? next() : res.status(422).json({ errors: errors.array() });
 };
 const currentUser = req => User.findById(req.user.id).select('name role');
+
+// Patient-facing endpoints: patients can request an appointment without an account.
+router.get('/public/doctors', async (_req, res, next) => {
+  try {
+    const doctors = await User.find({ role: 'doctor' }).select('name specialty').sort({ name: 1 });
+    res.json(doctors);
+  } catch (error) { next(error); }
+});
+
+router.post('/public', rules, valid, async (req, res, next) => {
+  try {
+    const doctor = await User.findOne({ name: req.body.doctor, role: 'doctor' }).select('_id');
+    if (!doctor) return res.status(422).json({ message: 'Please select an available doctor.' });
+    const appointment = await Appointment.create({ ...req.body, status: 'Pending' });
+    res.status(201).json({ id: appointment._id, message: 'Your appointment request has been received.' });
+  } catch (error) { next(error); }
+});
+
+router.use(auth);
 
 async function syncCompletedAppointment(appointment, actorId) {
   if (appointment.status !== 'Completed') return appointment;

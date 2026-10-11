@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { HeartPulse } from "lucide-react";
 import { useAuth } from "../AuthContext";
 import PasswordInput from "../components/common/PasswordInput";
@@ -10,14 +10,14 @@ export default function AuthPage() {
   const [form, setForm] = useState({ email: "", password: "" }),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to="/dashboard" replace />;
   const submit = async (e) => {
     e.preventDefault();
     setError("");
     try {
       setBusy(true);
       await login(form);
-      navigate("/");
+      navigate("/dashboard");
     } catch (e) {
       setError(
         e.response?.data?.message ||
@@ -82,8 +82,8 @@ export default function AuthPage() {
         <p className="managed-account-note">
           Need access? Contact a ClaraCare administrator.
         </p>
+        <Link className="back-to-care" to="/">&larr; Back to ClaraCare</Link>
       </form>
     </div>
   );
 }
-

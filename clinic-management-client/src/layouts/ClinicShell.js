@@ -137,7 +137,7 @@ export default function ClinicShell() {
                     ? "Laboratory workspace"
                     : "Clinical workspace"}
           </p>
-          <NavLink to="/">
+          <NavLink to="/dashboard">
             <LayoutDashboard />{" "}
             {isSuper
               ? "System overview"
@@ -252,6 +252,18 @@ export default function ClinicShell() {
               />
             }
           />
+          <Route
+            path="/dashboard"
+            element={
+              <Dashboard
+                user={user}
+                items={items}
+                total={total}
+                onAdd={canSchedule ? () => { setEditing(null); setModal(true); } : null}
+                loading={loading}
+              />
+            }
+          />
           {appointmentAccess && <Route
             path="/appointments"
             element={
@@ -340,4 +352,3 @@ export default function ClinicShell() {
     </div>
   );
 }
-

@@ -16,6 +16,8 @@ const schema = new mongoose.Schema({
   patientRecord: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
   medicalRecord: { type: mongoose.Schema.Types.ObjectId, ref: 'MedicalRecord' },
   followUpOf: { type: mongoose.Schema.Types.ObjectId, ref: 'Encounter' },
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  // Public appointment requests are intentionally not tied to a user account.
+  // Staff-created appointments still keep the creator for audit purposes.
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 module.exports = mongoose.model('Appointment', schema);

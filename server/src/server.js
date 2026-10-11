@@ -49,7 +49,7 @@ app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000' }));
 app.use(express.json({ limit: '20kb' }));
 app.use('/api/auth', rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }), authRoutes);
-app.use('/api/appointments', appointmentRoutes);
+app.use('/api/appointments', rateLimit({ windowMs: 15 * 60 * 1000, max: 200 }), appointmentRoutes);
 app.use('/api/patients', require('./routes/patients'));
 app.use('/api/records', require('./routes/records'));
 app.use('/api/users', require('./routes/users'));
