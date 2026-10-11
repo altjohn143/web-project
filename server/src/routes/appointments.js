@@ -4,7 +4,11 @@ const Appointment = require('../models/Appointment');
 const User = require('../models/User');
 const Patient = require('../models/Patient');
 const MedicalRecord = require('../models/MedicalRecord');
+const AppointmentOtp = require('../models/AppointmentOtp');
 const auth = require('../middleware/auth');
+const rateLimit = require('express-rate-limit');
+const crypto = require('crypto');
+const { sendAppointmentOtp, sendAppointmentConfirmation } = require('../services/email');
 
 const rules = [
   body('patient').trim().isLength({ min: 2, max: 100 }),
@@ -20,6 +24,18 @@ const valid = (req, res, next) => {
   return errors.isEmpty() ? next() : res.status(422).json({ errors: errors.array() });
 };
 const currentUser = req => User.findById(req.user.id).select('name role');
+const otpRules = [
+  body('patient').trim().isLength({ min: 2, max: 100 }),
+  body('reason').trim().isLength({ min: 2, max: 200 }),
+  body('doctor').trim().notEmpty(),
+  body('date').isISO8601(),
+  body('email').isEmail().normalizeEmail(),
+  body('phone').trim().isLength({ min: 5, max: 40 }),
+];
+const otpRequestLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false, message: { message: 'Too many verification requests. Please try again in 15 minutes.' } });
+const otpVerifyLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, message: { message: 'Too many verification attempts. Please try again later.' } });
+const hashOtp = code => crypto.createHmac('sha256', process.env.OTP_SECRET || process.env.JWT_SECRET || 'claracare-development-secret').update(code).digest('hex');
+const appointmentRequest = body => ({ patient: body.patient.trim(), email: body.email.toLowerCase(), phone: body.phone.trim(), reason: body.reason.trim(), doctor: body.doctor.trim(), date: body.date });
 
 // Patient-facing endpoints: patients can request an appointment without an account.
 router.get('/public/doctors', async (_req, res, next) => {
@@ -29,11 +45,42 @@ router.get('/public/doctors', async (_req, res, next) => {
   } catch (error) { next(error); }
 });
 
-router.post('/public', rules, valid, async (req, res, next) => {
+router.post('/public/send-otp', otpRequestLimiter, otpRules, valid, async (req, res, next) => {
   try {
     const doctor = await User.findOne({ name: req.body.doctor, role: 'doctor' }).select('_id');
     if (!doctor) return res.status(422).json({ message: 'Please select an available doctor.' });
-    const appointment = await Appointment.create({ ...req.body, status: 'Pending' });
+    const request = appointmentRequest(req.body);
+    const existing = await AppointmentOtp.findOne({ email: request.email });
+    if (existing && Date.now() - existing.lastSentAt.getTime() < 60 * 1000) return res.status(429).json({ message: 'Please wait one minute before requesting another code.' });
+    const code = String(crypto.randomInt(100000, 1000000));
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const verification = await AppointmentOtp.findOneAndUpdate(
+      { email: request.email },
+      { request, codeHash: hashOtp(code), attempts: 0, lastSentAt: new Date(), expiresAt },
+      { new: true, upsert: true, setDefaultsOnInsert: true },
+    );
+    try { await sendAppointmentOtp(request.email, code); } catch (error) { await verification.deleteOne(); throw error; }
+    res.status(201).json({ verificationId: verification._id, message: 'A verification code was sent to your email.' });
+  } catch (error) { next(error); }
+});
+
+router.post('/public/verify-otp', otpVerifyLimiter, [body('verificationId').isMongoId(), body('code').matches(/^\d{6}$/)], valid, async (req, res, next) => {
+  try {
+    const verification = await AppointmentOtp.findById(req.body.verificationId);
+    if (!verification || verification.expiresAt <= new Date()) {
+      if (verification) await verification.deleteOne();
+      return res.status(422).json({ message: 'This verification code has expired. Please request a new one.' });
+    }
+    if (verification.attempts >= 5) { await verification.deleteOne(); return res.status(429).json({ message: 'Too many incorrect codes. Please request a new one.' }); }
+    if (verification.codeHash !== hashOtp(req.body.code)) {
+      verification.attempts += 1;
+      await verification.save();
+      return res.status(422).json({ message: 'That verification code is incorrect.' });
+    }
+    const doctor = await User.findOne({ name: verification.request.doctor, role: 'doctor' }).select('_id');
+    if (!doctor) return res.status(422).json({ message: 'The selected doctor is no longer available. Please start again.' });
+    const appointment = await Appointment.create({ ...verification.request, status: 'Pending' });
+    await verification.deleteOne();
     res.status(201).json({ id: appointment._id, message: 'Your appointment request has been received.' });
   } catch (error) { next(error); }
 });
@@ -140,7 +187,13 @@ router.patch('/:id/status', async (req, res, next) => {
     }
     appointment.status = nextStatus;
     await appointment.save();
-    res.json(await syncCompletedAppointment(appointment, req.user.id));
+    let emailWarning;
+    if (nextStatus === 'Confirmed' && appointment.email) {
+      try { await sendAppointmentConfirmation(appointment); }
+      catch (error) { console.error('Appointment confirmation email failed:', error.message); emailWarning = 'The appointment was confirmed, but the confirmation email could not be sent.'; }
+    }
+    const result = await syncCompletedAppointment(appointment, req.user.id);
+    res.json({ ...result.toObject(), ...(emailWarning ? { emailWarning } : {}) });
   } catch (error) { next(error); }
 });
 
