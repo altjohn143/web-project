@@ -8,6 +8,12 @@ const authRoutes = require('./routes/auth');
 const appointmentRoutes = require('./routes/appointments');
 const User = require('./models/User');
 const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+const configuredClientOrigins = (process.env.CLIENT_URLS || process.env.CLIENT_URL || 'http://localhost:3000')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
+const vercelProjectOrigin = /^https:\/\/web-project(?:-[a-z0-9-]+)?\.vercel\.app$/;
+const isAllowedOrigin = origin => !origin || configuredClientOrigins.includes(origin) || vercelProjectOrigin.test(origin);
 
 const superadminAccounts = [
   { name: 'ClaraCare Superadmin One', email: 'superadmin1@claracare.local', passwordEnv: 'SEED_SUPERADMIN1_PASSWORD', role: 'superadmin' },
@@ -46,7 +52,12 @@ async function seedSuperadmins() {
 
 const app = express();
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000' }));
+app.use(cors({
+  origin(origin, callback) {
+    if (isAllowedOrigin(origin)) return callback(null, true);
+    return callback(new Error('Origin is not allowed by CORS'));
+  },
+}));
 app.use(express.json({ limit: '20kb' }));
 app.use('/api/auth', rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }), authRoutes);
 app.use('/api/appointments', rateLimit({ windowMs: 15 * 60 * 1000, max: 200 }), appointmentRoutes);
