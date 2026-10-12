@@ -15,6 +15,7 @@ const countryOptions = getCountries().map(country => ({
   country,
   code: `+${getCountryCallingCode(country)}`,
   name: countryNames.of(country),
+  flag: country.replace(/./g, character => String.fromCodePoint(127397 + character.charCodeAt(0))),
 })).sort((a, b) => a.name.localeCompare(b.name));
 
 const initialForm = {
@@ -86,7 +87,7 @@ export default function PatientAppointmentPage() {
               <label>Last name<input name="lastName" value={form.lastName} onChange={update} autoComplete="family-name" minLength="2" maxLength="50" required /></label>
             </div>
             <div className="form-row contact-row">
-              <label>Phone number<small>{isPhilippineNumber ? "Philippine mobile number" : "Enter 7 to 15 digits"}</small><div className="phone-fields"><select name="country" value={form.country} onChange={update} aria-label="Country code">{countryOptions.map(option => <option key={option.country} value={option.country}>{option.name} ({option.code})</option>)}</select><input name="phone" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })} inputMode="numeric" autoComplete="tel-national" pattern={isPhilippineNumber ? "9[0-9]{9}" : "[0-9]{7,15}"} title={isPhilippineNumber ? "Enter 10 digits starting with 9, for example 9123456789." : "Enter 7 to 15 digits."} placeholder={isPhilippineNumber ? "9123456789" : "Phone number"} maxLength={isPhilippineNumber ? "10" : "15"} required /></div></label>
+              <label>Phone number<small>{isPhilippineNumber ? "Philippine mobile number" : "Enter 7 to 15 digits"}</small><div className="phone-fields"><select name="country" value={form.country} onChange={update} aria-label="Country code">{countryOptions.map(option => <option key={option.country} value={option.country}>{option.flag} {option.code}</option>)}</select><input name="phone" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })} inputMode="numeric" autoComplete="tel-national" pattern={isPhilippineNumber ? "9[0-9]{9}" : "[0-9]{7,15}"} title={isPhilippineNumber ? "Enter 10 digits starting with 9, for example 9123456789." : "Enter 7 to 15 digits."} placeholder={isPhilippineNumber ? "9123456789" : "Phone number"} maxLength={isPhilippineNumber ? "10" : "15"} required /></div></label>
               <label>Email address <small>We’ll verify this before submitting your request.</small><input name="email" type="email" value={form.email} onChange={update} autoComplete="email" inputMode="email" pattern="[^\\s@]+@[^\\s@]+\\.[^\\s@]+" title="Enter a valid email address, including @." required /></label>
             </div>
             <div className="form-row schedule-row">

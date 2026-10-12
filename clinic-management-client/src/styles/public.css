@@ -601,7 +601,7 @@
 
 .appointment-page .phone-fields {
   display: grid;
-  grid-template-columns: minmax(160px, 1.25fr) minmax(120px, 1fr);
+  grid-template-columns: 112px minmax(0, 1fr);
   gap: 8px;
 }
 
