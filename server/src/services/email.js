@@ -1,28 +1,35 @@
-const nodemailer = require('nodemailer');
+const { google } = require('googleapis');
 
-const smtpPort = Number(process.env.SMTP_PORT || 587);
-const transporter = process.env.SMTP_USER && process.env.SMTP_PASS
-  ? nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: smtpPort,
-    secure: smtpPort === 465,
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS.replace(/\s/g, '') },
-    // Fail promptly when the provider cannot be reached instead of leaving the
-    // appointment form waiting for Nodemailer's two-minute default timeout.
-    connectionTimeout: 15_000,
-    greetingTimeout: 10_000,
-    socketTimeout: 20_000,
-  })
+const sender = process.env.GMAIL_SENDER;
+const gmailClient = process.env.GMAIL_CLIENT_ID && process.env.GMAIL_CLIENT_SECRET && process.env.GMAIL_REFRESH_TOKEN
+  ? (() => {
+    const auth = new google.auth.OAuth2(process.env.GMAIL_CLIENT_ID, process.env.GMAIL_CLIENT_SECRET);
+    auth.setCredentials({ refresh_token: process.env.GMAIL_REFRESH_TOKEN });
+    return google.gmail({ version: 'v1', auth });
+  })()
   : null;
-const from = process.env.EMAIL_FROM || process.env.SMTP_USER;
 const escapeHtml = value => String(value || '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
 
+function encodeMessage({ to, subject, html }) {
+  const recipients = Array.isArray(to) ? to.join(', ') : to;
+  const message = [
+    `From: ${sender}`,
+    `To: ${recipients}`,
+    `Subject: ${subject}`,
+    'MIME-Version: 1.0',
+    'Content-Type: text/html; charset=UTF-8',
+    '',
+    html,
+  ].join('\r\n');
+  return Buffer.from(message).toString('base64url');
+}
+
 async function sendEmail(message) {
-  if (!transporter || !from) throw Object.assign(new Error('Email service is not configured.'), { status: 503 });
+  if (!gmailClient || !sender) throw Object.assign(new Error('Email service is not configured.'), { status: 503 });
   try {
-    await transporter.sendMail({ from, ...message });
+    await gmailClient.users.messages.send({ userId: 'me', requestBody: { raw: encodeMessage(message) } });
   } catch (error) {
-    console.error('SMTP email error:', error.message);
+    console.error('Gmail API email error:', error.message);
     throw Object.assign(new Error('We could not send the email. Please try again.'), { status: 502 });
   }
 }
