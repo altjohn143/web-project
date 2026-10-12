@@ -51,6 +51,9 @@ async function seedSuperadmins() {
 }
 
 const app = express();
+// Render forwards requests through one reverse proxy. Trust it so rate limiting
+// can use the original visitor IP from X-Forwarded-For.
+app.set('trust proxy', 1);
 app.use(helmet());
 app.use(cors({
   origin(origin, callback) {
