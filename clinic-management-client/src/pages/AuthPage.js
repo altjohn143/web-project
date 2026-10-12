@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { HeartPulse } from "lucide-react";
 import { useAuth } from "../AuthContext";
 import PasswordInput from "../components/common/PasswordInput";
-import doctorHero from "../assets/doctor-hero.png";
+import surgeryHero from "../assets/surgery-hero.png";
 
 export default function AuthPage() {
   const { user, login } = useAuth(),
@@ -63,7 +63,7 @@ export default function AuthPage() {
           </p>
         </div>
         <div className="auth-photo-wrap" aria-hidden="true">
-          <img src={doctorHero} alt="" />
+          <img src={surgeryHero} alt="" />
         </div>
         <div className="auth-trust-cards" aria-hidden="true">
           <article>
@@ -115,7 +115,7 @@ export default function AuthPage() {
         <p className="managed-account-note">
           Need access? Contact a ClaraCare administrator.
         </p>
-        <Link className="back-to-care" to="/">&larr; Back to ClaraCare</Link>
+        <Link className="back-to-care" to="/">Back to ClaraCare</Link>
       </form>
     </div>
   );
