@@ -12,14 +12,14 @@
 .public-page:has(.public-hero) {
   min-height: 100vh;
   padding: 0;
-  overflow-x: hidden;
+  overflow-x: clip;
   background:
     linear-gradient(90deg, rgba(227, 243, 244, 0.94) 0 42%, rgba(222, 213, 206, 0.7) 42% 100%),
     #e7eef0;
 }
 
 .public-page:has(.public-hero) .public-nav {
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
@@ -28,7 +28,7 @@
   max-width: none;
   margin: 0;
   display: block;
-  min-height: 0;
+  min-height: 82px;
   padding: 0 !important;
   border: 0 !important;
   border-radius: 0 !important;
@@ -39,7 +39,7 @@
 }
 
 .floating-nav {
-  position: fixed;
+  position: absolute;
   top: 18px;
   left: auto !important;
   right: 36px !important;
@@ -488,6 +488,59 @@
   line-height: 1.55;
 }
 
+.info-with-image {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+  gap: clamp(40px, 8vw, 150px);
+  align-items: center;
+}
+
+.info-visual {
+  min-height: 390px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(15, 111, 116, 0.18);
+  border-radius: 28px;
+  background: #dff4f3;
+  box-shadow: 16px 18px 0 rgba(15, 111, 116, 0.12);
+  transition: transform 280ms cubic-bezier(0.2, 0.8, 0.25, 1), box-shadow 280ms ease;
+}
+
+.info-visual img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 390px;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 500ms cubic-bezier(0.2, 0.8, 0.25, 1), filter 280ms ease;
+}
+
+.info-visual:hover {
+  box-shadow: 22px 26px 0 rgba(15, 111, 116, 0.17);
+  transform: translateY(-7px);
+}
+
+.info-visual:hover img {
+  filter: saturate(1.06) contrast(1.02);
+  transform: scale(1.045);
+}
+
+.mission-vision-section {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(40px, 8vw, 140px);
+}
+
+.mission-vision-section article + article {
+  padding-left: clamp(28px, 5vw, 84px);
+  border-left: 1px solid rgba(15, 111, 116, 0.24);
+}
+
+.mission-vision-section h2 {
+  font-size: clamp(28px, 3.25vw, 46px);
+}
+
 .public-page:has(.public-hero) .public-info-section .eyebrow {
   color: #0f6f74 !important;
 }
@@ -508,6 +561,29 @@
   .floating-nav {
     overflow-x: auto;
     justify-content: flex-start;
+  }
+
+  .mission-vision-section {
+    grid-template-columns: 1fr;
+    gap: 44px;
+  }
+
+  .mission-vision-section article + article {
+    padding: 44px 0 0;
+    border-top: 1px solid rgba(15, 111, 116, 0.24);
+    border-left: 0;
+  }
+
+  .info-with-image {
+    grid-template-columns: 1fr;
+  }
+
+  .info-visual {
+    min-height: 300px;
+  }
+
+  .info-visual img {
+    min-height: 300px;
   }
 }
 

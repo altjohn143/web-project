@@ -226,6 +226,11 @@ function CrudPage({ type, title, icon, blank }) {
 
 function DetailsModal({ type, item, onClose }) {
   const patient = type === "patients" ? item : item.patient;
+  const [encounters, setEncounters] = useState([]);
+  useEffect(() => {
+    if (type !== "patients" || !item?._id) return;
+    api.get(`/workflows/patients/${item._id}/encounters`).then(({ data }) => setEncounters(data)).catch(() => setEncounters([]));
+  }, [type, item?._id]);
   return createPortal(
     <div className="modal-backdrop details-backdrop">
       <article
@@ -287,6 +292,19 @@ function DetailsModal({ type, item, onClose }) {
             )}
           </dl>
         </section>
+        {type === "patients" && (
+          <section className="clinical-details">
+            <h3>Nursing assessments</h3>
+            {encounters.length ? encounters.map((encounter) => (
+              <dl className="details-grid" key={encounter._id}>
+                <div><dt>Visit</dt><dd>{showDate(encounter.queueDate)}</dd></div>
+                <div><dt>Practitioner</dt><dd>{show(encounter.doctor?.name)}</dd></div>
+                <div><dt>Vital signs</dt><dd>{encounter.vitals?.recordedAt ? `BP ${encounter.vitals.bloodPressure || '—'} · Pulse ${encounter.vitals.pulse || '—'} bpm · SpO₂ ${encounter.vitals.oxygenLevel || '—'}%` : 'Not recorded'}</dd></div>
+                <div className="details-wide"><dt>Nurse’s concern</dt><dd>{show(encounter.vitals?.initialComplaint)}</dd></div>
+              </dl>
+            )) : <p>No nursing assessments have been recorded for this patient.</p>}
+          </section>
+        )}
         {type === "records" && (
           <section className="clinical-details">
             <h3>Clinical information</h3>

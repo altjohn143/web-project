@@ -6,6 +6,7 @@ import api from "../api";
 import { initials } from "../utils/clinic";
 import Dashboard from "../pages/DashboardPage";
 import ProfilePage from "../pages/ProfilePage";
+import SettingsPage from "../pages/SettingsPage";
 import { Appointments, AppointmentModal } from "../features/appointments/AppointmentComponents";
 import { Doctors, StaffAccounts, Module } from "../features/staff/StaffPages";
 import { BillingPage, LaboratoryPage } from "../OperationsPages";
@@ -326,13 +327,7 @@ export default function ClinicShell() {
           {isAdmin && (
             <Route
               path="/settings"
-              element={
-                <Module
-                  title="Settings"
-                  text="Clinic preferences and security configuration."
-                  icon={<Settings />}
-                />
-              }
+              element={<SettingsPage />}
             />
           )}
           <Route path="*" element={<Navigate to="/" replace />} />

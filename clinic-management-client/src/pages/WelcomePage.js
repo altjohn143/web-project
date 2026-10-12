@@ -1,10 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { CalendarDays, HeartPulse, ShieldCheck, Stethoscope } from "lucide-react";
 import doctorHero from "../assets/doctor-hero.png";
+import aboutClinic from "../assets/public/about-clinic.png";
+import privacyRecords from "../assets/public/privacy-records.png";
 
 export default function WelcomePage() {
   const [activeSection, setActiveSection] = useState("home");
+  useEffect(() => {
+    const sectionIds = ["mission-vision", "how-it-works", "about-us", "privacy-policy"];
+    const updateActiveSection = () => {
+      const current = sectionIds.reduce((active, id) => {
+        const section = document.getElementById(id);
+        return section && section.offsetTop <= window.scrollY + 150 ? id : active;
+      }, "home");
+      setActiveSection(current);
+    };
+    updateActiveSection();
+    window.addEventListener("scroll", updateActiveSection, { passive: true });
+    return () => window.removeEventListener("scroll", updateActiveSection);
+  }, []);
   const navigateToSection = section => event => {
     event.preventDefault();
     setActiveSection(section);
@@ -15,11 +30,10 @@ export default function WelcomePage() {
 
   return <main className="public-page">
     <header className="public-nav">
-      <Link className="public-brand" to="/"><HeartPulse /> CLARA <em>care</em></Link>
+      <Link className="public-brand" to="/" onClick={navigateToSection("home")}><HeartPulse /> CLARA <em>care</em></Link>
       <nav className="floating-nav" aria-label="ClaraCare sections">
         <a className={activeSection === "home" ? "active" : ""} href="/" onClick={navigateToSection("home")}>Home</a>
-        <a className={activeSection === "mission" ? "active" : ""} href="#mission" onClick={navigateToSection("mission")}>Mission</a>
-        <a className={activeSection === "vision" ? "active" : ""} href="#vision" onClick={navigateToSection("vision")}>Vision</a>
+        <a className={activeSection === "mission-vision" ? "active" : ""} href="#mission-vision" onClick={navigateToSection("mission-vision")}>Mission &amp; Vision</a>
         <a className={activeSection === "how-it-works" ? "active" : ""} href="#how-it-works" onClick={navigateToSection("how-it-works")}>How it works</a>
         <a className={activeSection === "about-us" ? "active" : ""} href="#about-us" onClick={navigateToSection("about-us")}>About us</a>
         <a className={activeSection === "privacy-policy" ? "active" : ""} href="#privacy-policy" onClick={navigateToSection("privacy-policy")}>Privacy policy</a>
@@ -50,25 +64,33 @@ export default function WelcomePage() {
       <article><Stethoscope /><h2>2. We review it</h2><p>Our staff checks availability and prepares your appointment.</p></article>
       <article><ShieldCheck /><h2>3. Get confirmation</h2><p>We contact you using the phone number or email you provide.</p></article>
     </section>
-    <section id="mission" className="public-info-section">
-      <p className="eyebrow">Our mission</p>
-      <h2>Make coordinated healthcare easier to reach.</h2>
-      <p>ClaraCare helps patients request care quickly while giving clinic teams a clear, organized path to review appointments, prepare visits, and keep records moving.</p>
+    <section id="mission-vision" className="public-info-section mission-vision-section">
+      <article>
+        <p className="eyebrow">Our mission</p>
+        <h2>Make coordinated healthcare easier to reach.</h2>
+        <p>ClaraCare helps patients request care quickly while giving clinic teams a clear, organized path to review appointments, prepare visits, and keep records moving.</p>
+      </article>
+      <article>
+        <p className="eyebrow">Our vision</p>
+        <h2>A calmer clinic experience for every patient and care team.</h2>
+        <p>We aim to support clinics with simple digital workflows that reduce confusion, improve response times, and keep patient care connected from request to confirmation.</p>
+      </article>
     </section>
-    <section id="vision" className="public-info-section">
-      <p className="eyebrow">Our vision</p>
-      <h2>A calmer clinic experience for every patient and care team.</h2>
-      <p>We aim to support clinics with simple digital workflows that reduce confusion, improve response times, and keep patient care connected from request to confirmation.</p>
+    <section id="about-us" className="public-info-section info-with-image">
+      <div className="info-copy">
+        <p className="eyebrow">About us</p>
+        <h2>Built around practical clinic coordination.</h2>
+        <p>ClaraCare is designed for the everyday work that keeps a clinic connected: appointment requests, doctor schedules, patient records, and the small details that help each clinic day run smoothly. We bring these essential tasks into one easy-to-use system so patients can request care with confidence and clinic teams can spend less time tracking information across messages, paper forms, and separate tools. From the first appointment request through follow-up care, ClaraCare supports a more organized, responsive, and welcoming experience for everyone involved.</p>
+      </div>
+      <figure className="info-visual"><img src={aboutClinic} alt="Doctor helping a patient at a clinic reception" /></figure>
     </section>
-    <section id="about-us" className="public-info-section">
-      <p className="eyebrow">About us</p>
-      <h2>Built around practical clinic coordination.</h2>
-      <p>ClaraCare is designed for everyday healthcare operations: appointment requests, doctor schedules, patient records, and the small details that help a clinic day run smoothly.</p>
-    </section>
-    <section id="privacy-policy" className="public-info-section">
-      <p className="eyebrow">Privacy policy</p>
-      <h2>Your information is handled with care.</h2>
-      <p>Appointment details are used to process visit requests and communicate with patients. Clinic staff should access patient information only for care coordination and authorized administrative work.</p>
+    <section id="privacy-policy" className="public-info-section info-with-image">
+      <div className="info-copy">
+        <p className="eyebrow">Privacy policy</p>
+        <h2>Your information is handled with care.</h2>
+        <p>We collect the information needed to process appointment requests, contact patients about their visit, and help authorized clinic staff coordinate care. This may include your name, contact details, preferred appointment time, and the reason for your visit. Access to patient information should be limited to authorized staff who need it for care coordination, appointment management, or approved administrative work. ClaraCare is intended to help clinics handle this information more consistently and responsibly; patients should contact the clinic directly if they have questions about how their information is used, updated, or retained.</p>
+      </div>
+      <figure className="info-visual"><img src={privacyRecords} alt="Secure digital medical record protected by a shield" /></figure>
     </section>
   </main>;
 }

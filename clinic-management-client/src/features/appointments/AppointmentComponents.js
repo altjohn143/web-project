@@ -364,6 +364,9 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
             <input
               value={form.phone}
               onChange={(e) => change("phone", e.target.value)}
+              minLength="7"
+              maxLength="25"
+              required
             />
           </label>
           <label>
@@ -412,6 +415,7 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
               type="datetime-local"
               value={form.date}
               onChange={(e) => change("date", e.target.value)}
+              min={new Date().toISOString().slice(0, 16)}
               required
             />
           </label>

@@ -262,9 +262,11 @@ function AccountModal({ role, roles, onClose, onCreated }) {
           <label>
             Temporary password
             <PasswordInput
+              name="password"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               autoComplete="new-password"
+              minLength="8"
               required
             />
             <small className="password-help">
@@ -274,9 +276,11 @@ function AccountModal({ role, roles, onClose, onCreated }) {
           <label>
             Confirm password
             <PasswordInput
+              name="confirmPassword"
               value={form.confirm}
               onChange={(e) => setForm({ ...form, confirm: e.target.value })}
               autoComplete="new-password"
+              minLength="8"
               required
             />
           </label>
