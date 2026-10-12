@@ -59,10 +59,12 @@
     0 14px 44px rgba(7, 63, 121, 0.16);
   backdrop-filter: blur(18px) saturate(1.18);
   -webkit-backdrop-filter: blur(18px) saturate(1.18);
-  transform: none !important;
+  transform: none;
+  animation: floating-nav-enter 650ms 110ms cubic-bezier(0.2, 0.82, 0.25, 1) both;
 }
 
 .floating-nav a {
+  position: relative;
   padding: 0;
   border-radius: 999px;
   color: #073f79;
@@ -70,11 +72,54 @@
   text-decoration: none;
   text-transform: none;
   white-space: nowrap;
+  transition: color 180ms ease, transform 180ms ease;
 }
 
-.floating-nav a:hover {
+.floating-nav a::after {
+  position: absolute;
+  right: 0;
+  bottom: -8px;
+  left: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: #0f6f74;
+  content: "";
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 180ms ease;
+}
+
+.floating-nav a:hover,
+.floating-nav a:focus-visible {
   color: #0f6f74;
   background: transparent;
+  transform: translateY(-2px);
+}
+
+.floating-nav a:hover::after,
+.floating-nav a:focus-visible::after,
+.floating-nav a.active::after {
+  transform: scaleX(1);
+}
+
+.floating-nav a.active {
+  color: #0f6f74;
+}
+
+.floating-nav a:active {
+  transform: translateY(0) scale(0.96);
+}
+
+@keyframes floating-nav-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .nav-appointment {
@@ -527,6 +572,22 @@
   align-items: center;
 }
 
+.route-transition {
+  animation: route-transition-in 360ms cubic-bezier(0.22, 0.8, 0.25, 1) both;
+}
+
+@keyframes route-transition-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .appointment-page .appointment-intro {
   padding-top: 0;
 }
@@ -601,8 +662,13 @@
 
 .appointment-page .phone-fields {
   display: grid;
-  grid-template-columns: 125px minmax(0, 1fr);
+  grid-template-columns: 108px minmax(0, 1fr);
   gap: 8px;
+}
+
+.appointment-page .patient-form .phone-fields select {
+  padding: 0 20px 0 8px;
+  font-size: 13px;
 }
 
 .appointment-page .optional-label {

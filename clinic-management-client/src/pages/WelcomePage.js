@@ -1,18 +1,28 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CalendarDays, HeartPulse, ShieldCheck, Stethoscope } from "lucide-react";
 import doctorHero from "../assets/doctor-hero.png";
 
 export default function WelcomePage() {
+  const [activeSection, setActiveSection] = useState("home");
+  const navigateToSection = section => event => {
+    event.preventDefault();
+    setActiveSection(section);
+    if (section === "home") window.scrollTo({ top: 0, behavior: "smooth" });
+    else document.getElementById(section)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.history.replaceState(null, "", section === "home" ? "/" : `#${section}`);
+  };
+
   return <main className="public-page">
     <header className="public-nav">
       <Link className="public-brand" to="/"><HeartPulse /> CLARA <em>care</em></Link>
       <nav className="floating-nav" aria-label="ClaraCare sections">
-        <a href="/">Home</a>
-        <a href="#mission">Mission</a>
-        <a href="#vision">Vision</a>
-        <a href="#how-it-works">How it works</a>
-        <a href="#about-us">About us</a>
-        <a href="#privacy-policy">Privacy policy</a>
+        <a className={activeSection === "home" ? "active" : ""} href="/" onClick={navigateToSection("home")}>Home</a>
+        <a className={activeSection === "mission" ? "active" : ""} href="#mission" onClick={navigateToSection("mission")}>Mission</a>
+        <a className={activeSection === "vision" ? "active" : ""} href="#vision" onClick={navigateToSection("vision")}>Vision</a>
+        <a className={activeSection === "how-it-works" ? "active" : ""} href="#how-it-works" onClick={navigateToSection("how-it-works")}>How it works</a>
+        <a className={activeSection === "about-us" ? "active" : ""} href="#about-us" onClick={navigateToSection("about-us")}>About us</a>
+        <a className={activeSection === "privacy-policy" ? "active" : ""} href="#privacy-policy" onClick={navigateToSection("privacy-policy")}>Privacy policy</a>
       </nav>
     </header>
     <section className="public-hero">
