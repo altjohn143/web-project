@@ -1110,3 +1110,47 @@ body:has(.auth-page) {
     left: calc(100vw - 455px) !important;
   }
 }
+
+/* Login viewport cleanup: no outer rounded border, no page scroll. */
+html:has(.auth-page),
+body:has(.auth-page),
+#root:has(.auth-page) {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  overflow: hidden !important;
+}
+
+.auth-page {
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.auth-page > .auth-brand {
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.auth-page > .auth-brand::before {
+  inset: 92px 56px auto 56px !important;
+  border-radius: 0 !important;
+}
+
+.auth-page > .auth-brand::after {
+  right: 0 !important;
+  border-radius: 0 !important;
+}
+
+.auth-page > .auth-form {
+  top: 24vh !important;
+  left: min(60vw, calc(100vw - 475px)) !important;
+  max-height: calc(100vh - 56px) !important;
+  overflow: hidden !important;
+}
