@@ -647,3 +647,466 @@ button:disabled {
     justify-self: start;
   }
 }
+
+/* ClaraCare medical card login */
+body:has(.auth-page) {
+  overflow-x: hidden;
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  place-items: center;
+  padding: clamp(18px, 4vh, 42px);
+  overflow-x: hidden;
+  background:
+    linear-gradient(rgba(10, 16, 16, 0.78), rgba(10, 16, 16, 0.82)),
+    radial-gradient(circle at 24% 76%, rgba(0, 172, 162, 0.32), transparent 24rem),
+    #171b1a !important;
+}
+
+.auth-page > .auth-brand,
+.auth-page > .auth-form {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.auth-page > .auth-brand {
+  position: relative;
+  width: min(1120px, calc(100vw - 72px));
+  min-height: min(820px, calc(100vh - 64px));
+  padding: 0 !important;
+  border-radius: 34px;
+  overflow: hidden;
+  display: block !important;
+  background:
+    linear-gradient(110deg, rgba(240, 250, 255, 0.98) 0 58%, rgba(216, 243, 255, 0.95) 58% 100%),
+    #ffffff !important;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.36);
+}
+
+.auth-page > .auth-brand::before {
+  content: "";
+  position: absolute;
+  inset: 78px 30px auto 30px;
+  height: 330px;
+  border-radius: 28px;
+  background:
+    linear-gradient(90deg, rgba(226, 247, 255, 0.94), rgba(205, 239, 252, 0.74)),
+    radial-gradient(circle at 76% 30%, rgba(34, 153, 216, 0.18), transparent 16rem);
+}
+
+.auth-page > .auth-brand::after {
+  content: "";
+  position: absolute;
+  right: 30px;
+  top: 0;
+  width: 320px;
+  height: 108px;
+  background: linear-gradient(110deg, transparent 0 26%, rgba(151, 223, 255, 0.48) 26% 100%);
+}
+
+.auth-brand .brand {
+  position: absolute;
+  top: 32px;
+  left: 66px;
+  z-index: 5;
+  margin: 0 !important;
+  color: #0f5061 !important;
+  font-size: 26px;
+  letter-spacing: 0.15em;
+}
+
+.auth-brand .brand-mark {
+  width: 46px !important;
+  height: 46px !important;
+  background: #e9f9ff !important;
+  color: #087c82 !important;
+}
+
+.auth-brand .brand-mark svg {
+  width: 25px !important;
+  height: 25px !important;
+}
+
+.auth-brand .brand em {
+  color: #00a99b !important;
+}
+
+.auth-brand > div:nth-child(2),
+.auth-orbit {
+  display: none !important;
+}
+
+.auth-bars {
+  position: absolute;
+  left: 66px;
+  top: 112px;
+  z-index: 4;
+  display: flex;
+  gap: 36px;
+  align-items: center;
+}
+
+.auth-bars span {
+  display: block;
+  height: 36px;
+  border-radius: 999px;
+}
+
+.auth-bars span:nth-child(1) {
+  width: 140px;
+  background: #268fe0;
+}
+
+.auth-bars span:nth-child(2) {
+  width: 140px;
+  background: #1fb7a5;
+  border-radius: 0;
+}
+
+.auth-bars span:nth-child(3) {
+  width: 235px;
+  background: #8ed8ff;
+}
+
+.auth-hero-copy {
+  position: absolute;
+  left: 66px;
+  top: 178px;
+  z-index: 4;
+  max-width: 400px;
+}
+
+.auth-hero-copy span {
+  color: #00a99b;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.auth-hero-copy p {
+  margin: 7px 0 0;
+  color: #5d7b81;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.auth-photo-wrap {
+  position: absolute;
+  right: 410px;
+  top: 112px;
+  z-index: 2;
+  width: 430px;
+  height: 560px;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.auth-photo-wrap img {
+  width: 430px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 24px 46px rgba(21, 88, 115, 0.2));
+}
+
+.auth-trust-cards {
+  position: absolute;
+  left: 66px;
+  top: 360px;
+  z-index: 5;
+  width: 520px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.auth-trust-cards article {
+  min-height: 86px;
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 14px 34px rgba(31, 114, 144, 0.12);
+}
+
+.auth-trust-cards b {
+  display: block;
+  color: #0072ce;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.auth-trust-cards span {
+  color: #557579;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.auth-page > .auth-form {
+  position: relative;
+  z-index: 8;
+  justify-self: center;
+  align-self: end;
+  width: 430px;
+  min-height: 0 !important;
+  margin: 0 0 44px 0;
+  transform: translateX(290px);
+  padding: 29px !important;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.94) !important;
+  border: 1px solid rgba(18, 110, 140, 0.14);
+  box-shadow: 0 20px 55px rgba(20, 84, 94, 0.16);
+}
+
+.auth-form .eyebrow {
+  color: #0d6979 !important;
+  font-size: 9px !important;
+}
+
+.auth-form .eyebrow span {
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.auth-form h2 {
+  margin: 12px 0 18px !important;
+  color: #073f79 !important;
+  font-size: 44px !important;
+  line-height: 0.92 !important;
+}
+
+.auth-form label {
+  margin: 9px 0 !important;
+  color: #143633 !important;
+}
+
+.auth-form input {
+  min-height: 46px !important;
+  background: #eef7ff !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(20, 54, 51, 0.5) !important;
+  padding: 0 12px !important;
+}
+
+.auth-form .primary.full {
+  min-height: 50px !important;
+  margin-top: 18px !important;
+  background: linear-gradient(90deg, #0072ce, #00a99b) !important;
+  color: #fff !important;
+}
+
+.managed-account-note {
+  margin-top: 13px !important;
+  color: #6d7f80 !important;
+}
+
+.back-to-care {
+  display: none !important;
+}
+
+@media (max-width: 980px) {
+  .auth-page {
+    padding: 16px;
+  }
+
+  .auth-page > .auth-brand {
+    min-height: 980px;
+  }
+
+  .auth-bars {
+    gap: 18px;
+  }
+
+  .auth-bars span:nth-child(1),
+  .auth-bars span:nth-child(2) {
+    width: 110px;
+  }
+
+  .auth-bars span:nth-child(3) {
+    width: 170px;
+  }
+
+  .auth-photo-wrap {
+    right: 40px;
+    top: 240px;
+  }
+
+  .auth-trust-cards {
+    width: calc(100% - 80px);
+    grid-template-columns: 1fr;
+  }
+
+  .auth-page > .auth-form {
+    width: calc(100% - 64px);
+    margin: 0 32px 34px;
+    transform: none;
+  }
+}
+
+/* Login overlap fixes */
+.auth-photo-wrap {
+  right: 380px !important;
+  top: 96px !important;
+  z-index: 3 !important;
+  width: 455px !important;
+  height: 620px !important;
+  overflow: visible !important;
+}
+
+.auth-photo-wrap img {
+  width: 455px !important;
+}
+
+.auth-trust-cards {
+  left: 66px !important;
+  top: 590px !important;
+  width: 450px !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  z-index: 4 !important;
+}
+
+.auth-trust-cards article:nth-child(3) {
+  display: none !important;
+}
+
+.auth-page > .auth-form {
+  width: 430px !important;
+  transform: translateX(315px) !important;
+  background: #ffffff !important;
+  overflow: hidden !important;
+}
+
+.auth-page > .auth-form::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #ffffff;
+}
+
+.auth-form .primary.full {
+  margin-top: 24px !important;
+}
+
+.back-to-care {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  margin: 14px auto 0;
+  padding: 0 16px;
+  border: 1px solid rgba(7, 63, 121, 0.18);
+  border-radius: 999px;
+  color: #073f79;
+  background: #eef7ff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.back-to-care:hover {
+  background: #dff3ff;
+}
+
+@media (max-width: 980px) {
+  .auth-trust-cards {
+    top: 430px !important;
+    width: calc(100% - 80px) !important;
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .auth-page > .auth-form {
+    transform: none !important;
+  }
+}
+
+/* Final login framing: larger logo and fuller doctor image. */
+.auth-brand .brand {
+  top: 42px !important;
+  left: 70px !important;
+  gap: 16px !important;
+  font-size: 34px !important;
+}
+
+.auth-brand .brand-mark {
+  width: 66px !important;
+  height: 66px !important;
+}
+
+.auth-brand .brand-mark svg {
+  width: 37px !important;
+  height: 37px !important;
+}
+
+.auth-brand .brand > span:last-child {
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+.auth-photo-wrap {
+  right: 420px !important;
+  top: 145px !important;
+  width: 520px !important;
+  height: 560px !important;
+  overflow: visible !important;
+}
+
+.auth-photo-wrap img {
+  width: 520px !important;
+  height: auto !important;
+  max-height: none !important;
+}
+
+.auth-page > .auth-form {
+  position: absolute !important;
+  top: calc(50% - 130px) !important;
+  left: min(calc(50% + 110px), calc(100vw - 455px)) !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+}
+
+/* Keep the login hero lanes clear on the embedded preview width. */
+.auth-hero-copy {
+  left: 66px !important;
+  top: 190px !important;
+  max-width: 315px !important;
+  z-index: 6 !important;
+}
+
+.auth-hero-copy p {
+  max-width: 315px !important;
+  font-size: 14px !important;
+  line-height: 1.42 !important;
+}
+
+.auth-photo-wrap {
+  right: 370px !important;
+  top: 150px !important;
+}
+
+.auth-trust-cards {
+  top: 600px !important;
+}
+
+@media (max-width: 1100px) {
+  .auth-hero-copy {
+    max-width: 285px !important;
+  }
+
+  .auth-hero-copy p {
+    max-width: 285px !important;
+  }
+
+  .auth-photo-wrap {
+    right: 430px !important;
+  }
+
+  .auth-page > .auth-form {
+    left: calc(100vw - 455px) !important;
+  }
+}
