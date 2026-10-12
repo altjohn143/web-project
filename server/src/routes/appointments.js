@@ -10,6 +10,27 @@ const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
 const { sendAppointmentOtp, sendAppointmentConfirmation } = require('../services/email');
 
+const careSpecialties = {
+  'General medicine': ['Family Physicians', 'General Practitioners (GPs)'],
+  'Internal medicine': ['Internal Medicine Physicians (Internists)'],
+  Pediatrics: ['Pediatricians'],
+  "Women's health": ['Obstetrician/Gynecologists (OB-GYNs)'],
+};
+const publicCareTypes = Object.keys(careSpecialties);
+
+function isDuringOfficeHours(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value)) return false;
+  const [datePart, timePart] = value.split('T');
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hour, minute] = timePart.slice(0, 5).split(':').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+    && date.getUTCDay() >= 1 && date.getUTCDay() <= 5 && hour >= 8 && hour < 17 && minute >= 0 && minute < 60;
+}
+
+const patientName = body => [body.firstName, body.middleName, body.lastName]
+  .filter(Boolean).map(value => value.trim()).filter(Boolean).join(' ');
+
 const rules = [
   body('patient').trim().isLength({ min: 2, max: 100 }),
   body('reason').trim().isLength({ min: 2, max: 200 }),
@@ -25,17 +46,26 @@ const valid = (req, res, next) => {
 };
 const currentUser = req => User.findById(req.user.id).select('name role');
 const otpRules = [
-  body('patient').trim().isLength({ min: 2, max: 100 }),
-  body('reason').trim().isLength({ min: 2, max: 200 }),
-  body('doctor').trim().notEmpty(),
-  body('date').isISO8601(),
-  body('email').isEmail().normalizeEmail(),
-  body('phone').trim().isLength({ min: 5, max: 40 }),
+  body('firstName').trim().isLength({ min: 2, max: 50 }).withMessage('Enter a first name with at least 2 characters.'),
+  body('middleName').optional({ checkFalsy: true }).trim().isLength({ max: 50 }),
+  body('lastName').trim().isLength({ min: 2, max: 50 }).withMessage('Enter a last name with at least 2 characters.'),
+  body('careType').isIn(publicCareTypes).withMessage('Select a type of care.'),
+  body('date').custom(isDuringOfficeHours).withMessage('Appointments are available Monday through Friday, from 8:00 AM to 5:00 PM.'),
+  body('email').isEmail().withMessage('Enter a valid email address, including @.').normalizeEmail(),
+  body('countryCode').equals('+63').withMessage('Only Philippine mobile numbers are currently supported.'),
+  body('phone').matches(/^9\d{9}$/).withMessage('Enter a 10-digit Philippine mobile number beginning with 9.'),
 ];
 const otpRequestLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false, message: { message: 'Too many verification requests. Please try again in 15 minutes.' } });
 const otpVerifyLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, message: { message: 'Too many verification attempts. Please try again later.' } });
 const hashOtp = code => crypto.createHmac('sha256', process.env.OTP_SECRET || process.env.JWT_SECRET || 'claracare-development-secret').update(code).digest('hex');
-const appointmentRequest = body => ({ patient: body.patient.trim(), email: body.email.toLowerCase(), phone: body.phone.trim(), reason: body.reason.trim(), doctor: body.doctor.trim(), date: body.date });
+const appointmentRequest = (body, doctor) => ({
+  patient: patientName(body),
+  email: body.email.toLowerCase(),
+  phone: `${body.countryCode}${body.phone}`,
+  reason: body.careType,
+  doctor: doctor.name,
+  date: body.date,
+});
 
 // Patient-facing endpoints: patients can request an appointment without an account.
 router.get('/public/doctors', async (_req, res, next) => {
@@ -45,11 +75,16 @@ router.get('/public/doctors', async (_req, res, next) => {
   } catch (error) { next(error); }
 });
 
+async function assignPractitioner(careType) {
+  return User.findOne({ role: 'doctor', specialty: { $in: careSpecialties[careType] } })
+    .select('name specialty').sort({ name: 1 });
+}
+
 router.post('/public/send-otp', otpRequestLimiter, otpRules, valid, async (req, res, next) => {
   try {
-    const doctor = await User.findOne({ name: req.body.doctor, role: 'doctor' }).select('_id');
-    if (!doctor) return res.status(422).json({ message: 'Please select an available doctor.' });
-    const request = appointmentRequest(req.body);
+    const doctor = await assignPractitioner(req.body.careType);
+    if (!doctor) return res.status(422).json({ message: 'No practitioner is currently available for this type of care. Please contact the clinic.' });
+    const request = appointmentRequest(req.body, doctor);
     const existing = await AppointmentOtp.findOne({ email: request.email });
     if (existing && Date.now() - existing.lastSentAt.getTime() < 60 * 1000) return res.status(429).json({ message: 'Please wait one minute before requesting another code.' });
     const code = String(crypto.randomInt(100000, 1000000));
