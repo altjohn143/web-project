@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { HeartPulse } from "lucide-react";
 import { useAuth } from "../AuthContext";
 import PasswordInput from "../components/common/PasswordInput";
+import doctorHero from "../assets/doctor-hero.png";
 
 export default function AuthPage() {
   const { user, login } = useAuth(),
@@ -49,6 +50,34 @@ export default function AuthPage() {
         </div>
         <div className="auth-orbit">
           <HeartPulse />
+        </div>
+        <div className="auth-bars" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className="auth-hero-copy" aria-hidden="true">
+          <span>Your health, our priority</span>
+          <p>
+            Secure clinic management for appointments, patients, and daily care.
+          </p>
+        </div>
+        <div className="auth-photo-wrap" aria-hidden="true">
+          <img src={doctorHero} alt="" />
+        </div>
+        <div className="auth-trust-cards" aria-hidden="true">
+          <article>
+            <b>24/7</b>
+            <span>Clinic access</span>
+          </article>
+          <article>
+            <b>100K+</b>
+            <span>Patient records</span>
+          </article>
+          <article>
+            <b>50+</b>
+            <span>Care tools</span>
+          </article>
         </div>
       </section>
       <form className="auth-form" onSubmit={submit}>
