@@ -57,7 +57,7 @@ router.post('/public/send-otp', otpRequestLimiter, otpRules, valid, async (req, 
     const verification = await AppointmentOtp.findOneAndUpdate(
       { email: request.email },
       { request, codeHash: hashOtp(code), attempts: 0, lastSentAt: new Date(), expiresAt },
-      { new: true, upsert: true, setDefaultsOnInsert: true },
+      { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true },
     );
     try { await sendAppointmentOtp(request.email, code); } catch (error) { await verification.deleteOne(); throw error; }
     res.status(201).json({ verificationId: verification._id, message: 'A verification code was sent to your email.' });
@@ -112,7 +112,7 @@ async function syncCompletedAppointment(appointment, actorId) {
   const record = await MedicalRecord.findOneAndUpdate(
     { appointment: appointment._id },
     { appointment: appointment._id, patient: patient._id, doctor: doctor._id, visitDate: appointment.date, diagnosis: appointment.diagnosis, treatment: appointment.treatment, notes: appointment.notes, createdBy: actorId },
-    { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true }
+    { returnDocument: 'after', upsert: true, runValidators: true, setDefaultsOnInsert: true }
   );
   appointment.patientRecord = patient._id;
   appointment.medicalRecord = record._id;
@@ -164,7 +164,7 @@ router.put('/:id', rules, valid, async (req, res, next) => {
     if (['Completed', 'Cancelled'].includes(current.status)) return res.status(422).json({ message: `${current.status} appointments are final and cannot be edited` });
     const { status: _ignoredStatus, ...editable } = req.body;
     const update = { ...editable, ...(user.role === 'doctor' ? { doctor: user.name } : {}) };
-    const item = await Appointment.findOneAndUpdate(filter, update, { new: true, runValidators: true });
+    const item = await Appointment.findOneAndUpdate(filter, update, { returnDocument: 'after', runValidators: true });
     res.json(item);
   } catch (error) { next(error); }
 });

@@ -7,6 +7,11 @@ const transporter = process.env.SMTP_USER && process.env.SMTP_PASS
     port: smtpPort,
     secure: smtpPort === 465,
     auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS.replace(/\s/g, '') },
+    // Fail promptly when the provider cannot be reached instead of leaving the
+    // appointment form waiting for Nodemailer's two-minute default timeout.
+    connectionTimeout: 15_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
   })
   : null;
 const from = process.env.EMAIL_FROM || process.env.SMTP_USER;
