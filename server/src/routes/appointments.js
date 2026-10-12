@@ -52,8 +52,15 @@ const otpRules = [
   body('careType').isIn(publicCareTypes).withMessage('Select a type of care.'),
   body('date').custom(isDuringOfficeHours).withMessage('Appointments are available Monday through Friday, from 8:00 AM to 5:00 PM.'),
   body('email').isEmail().withMessage('Enter a valid email address, including @.').normalizeEmail(),
-  body('countryCode').equals('+63').withMessage('Only Philippine mobile numbers are currently supported.'),
-  body('phone').matches(/^9\d{9}$/).withMessage('Enter a 10-digit Philippine mobile number beginning with 9.'),
+  body('country').matches(/^[A-Z]{2}$/).withMessage('Select a country code.'),
+  body('countryCode').matches(/^\+\d{1,4}$/).withMessage('Select a valid country code.'),
+  body('phone').custom((phone, { req }) => {
+    const validPhone = req.body.country === 'PH' ? /^9\d{9}$/ : /^\d{7,15}$/;
+    if (!validPhone.test(phone)) throw new Error(req.body.country === 'PH'
+      ? 'Enter a 10-digit Philippine mobile number beginning with 9.'
+      : 'Enter a phone number containing 7 to 15 digits.');
+    return true;
+  }),
 ];
 const otpRequestLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false, message: { message: 'Too many verification requests. Please try again in 15 minutes.' } });
 const otpVerifyLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, message: { message: 'Too many verification attempts. Please try again later.' } });

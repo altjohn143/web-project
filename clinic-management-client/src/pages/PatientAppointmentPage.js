@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { HeartPulse } from "lucide-react";
+import { getCountries, getCountryCallingCode } from "libphonenumber-js";
 import api from "../api";
 
 const careOptions = [
@@ -9,9 +10,15 @@ const careOptions = [
   "Pediatrics",
   "Women's health",
 ];
+const countryNames = new Intl.DisplayNames(["en"], { type: "region" });
+const countryOptions = getCountries().map(country => ({
+  country,
+  code: `+${getCountryCallingCode(country)}`,
+  name: countryNames.of(country),
+})).sort((a, b) => a.name.localeCompare(b.name));
 
 const initialForm = {
-  firstName: "", middleName: "", lastName: "", countryCode: "+63", phone: "",
+  firstName: "", middleName: "", lastName: "", country: "PH", phone: "",
   email: "", careType: "", date: "",
 };
 
@@ -30,6 +37,8 @@ export default function PatientAppointmentPage() {
   const [busy, setBusy] = useState(false);
   const [verificationId, setVerificationId] = useState("");
   const [code, setCode] = useState("");
+  const selectedCountry = countryOptions.find(option => option.country === form.country);
+  const isPhilippineNumber = form.country === "PH";
 
   const update = e => setForm({ ...form, [e.target.name]: e.target.value });
   const submit = async e => {
@@ -41,7 +50,7 @@ export default function PatientAppointmentPage() {
     }
     setBusy(true);
     try {
-      const { data } = await api.post("/appointments/public/send-otp", form);
+      const { data } = await api.post("/appointments/public/send-otp", { ...form, countryCode: selectedCountry.code });
       setVerificationId(data.verificationId);
     } catch (err) {
       setError(err.response?.data?.message || err.response?.data?.errors?.[0]?.msg || "We couldn't send your verification code. Please try again.");
@@ -73,11 +82,11 @@ export default function PatientAppointmentPage() {
             <h2>Appointment request</h2>
             <div className="form-row name-row">
               <label>First name<input name="firstName" value={form.firstName} onChange={update} autoComplete="given-name" minLength="2" maxLength="50" required /></label>
-              <label>Middle name <small>Optional</small><input name="middleName" value={form.middleName} onChange={update} autoComplete="additional-name" maxLength="50" /></label>
+              <label><span>Middle name <em className="optional-label">Optional</em></span><input name="middleName" value={form.middleName} onChange={update} autoComplete="additional-name" maxLength="50" /></label>
               <label>Last name<input name="lastName" value={form.lastName} onChange={update} autoComplete="family-name" minLength="2" maxLength="50" required /></label>
             </div>
             <div className="form-row contact-row">
-              <label>Phone number<small>Philippine mobile number</small><div className="phone-fields"><select name="countryCode" value={form.countryCode} onChange={update} aria-label="Country code"><option value="+63">+63</option></select><input name="phone" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })} inputMode="numeric" autoComplete="tel-national" pattern="9[0-9]{9}" title="Enter 10 digits starting with 9, for example 9123456789." placeholder="9123456789" maxLength="10" required /></div></label>
+              <label>Phone number<small>{isPhilippineNumber ? "Philippine mobile number" : "Enter 7 to 15 digits"}</small><div className="phone-fields"><select name="country" value={form.country} onChange={update} aria-label="Country code">{countryOptions.map(option => <option key={option.country} value={option.country}>{option.name} ({option.code})</option>)}</select><input name="phone" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })} inputMode="numeric" autoComplete="tel-national" pattern={isPhilippineNumber ? "9[0-9]{9}" : "[0-9]{7,15}"} title={isPhilippineNumber ? "Enter 10 digits starting with 9, for example 9123456789." : "Enter 7 to 15 digits."} placeholder={isPhilippineNumber ? "9123456789" : "Phone number"} maxLength={isPhilippineNumber ? "10" : "15"} required /></div></label>
               <label>Email address <small>We’ll verify this before submitting your request.</small><input name="email" type="email" value={form.email} onChange={update} autoComplete="email" inputMode="email" pattern="[^\\s@]+@[^\\s@]+\\.[^\\s@]+" title="Enter a valid email address, including @." required /></label>
             </div>
             <div className="form-row schedule-row">
