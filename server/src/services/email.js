@@ -1,13 +1,25 @@
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const from = process.env.EMAIL_FROM || 'ClaraCare <onboarding@resend.dev>';
+const smtpPort = Number(process.env.SMTP_PORT || 587);
+const transporter = process.env.SMTP_USER && process.env.SMTP_PASS
+  ? nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: smtpPort,
+    secure: smtpPort === 465,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS.replace(/\s/g, '') },
+  })
+  : null;
+const from = process.env.EMAIL_FROM || process.env.SMTP_USER;
 const escapeHtml = value => String(value || '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
 
 async function sendEmail(message) {
-  if (!resend) throw Object.assign(new Error('Email service is not configured.'), { status: 503 });
-  const { error } = await resend.emails.send({ from, ...message });
-  if (error) throw Object.assign(new Error('We could not send the email. Please try again.'), { status: 502 });
+  if (!transporter || !from) throw Object.assign(new Error('Email service is not configured.'), { status: 503 });
+  try {
+    await transporter.sendMail({ from, ...message });
+  } catch (error) {
+    console.error('SMTP email error:', error.message);
+    throw Object.assign(new Error('We could not send the email. Please try again.'), { status: 502 });
+  }
 }
 
 async function sendAppointmentOtp(email, code) {
