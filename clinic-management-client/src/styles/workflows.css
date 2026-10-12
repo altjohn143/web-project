@@ -1154,3 +1154,72 @@ body:has(.auth-page),
   max-height: calc(100vh - 56px) !important;
   overflow: hidden !important;
 }
+
+/* Final alignment polish for the login composition. */
+.auth-brand .brand {
+  top: 58px !important;
+  left: 104px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 20px !important;
+}
+
+.auth-brand .brand-mark {
+  width: 82px !important;
+  height: 82px !important;
+}
+
+.auth-brand .brand-mark svg {
+  width: 46px !important;
+  height: 46px !important;
+}
+
+.auth-brand .brand > span:last-child {
+  display: inline-flex !important;
+  align-items: baseline !important;
+  gap: 13px !important;
+  font-size: 30px !important;
+  line-height: 1 !important;
+  letter-spacing: 0.17em !important;
+}
+
+.auth-brand .brand em {
+  font-size: 28px !important;
+  letter-spacing: 0.08em !important;
+}
+
+.auth-bars {
+  left: 104px !important;
+  top: 170px !important;
+}
+
+.auth-hero-copy {
+  left: 104px !important;
+  top: 300px !important;
+  max-width: 330px !important;
+}
+
+.auth-hero-copy p {
+  max-width: 330px !important;
+  margin-top: 14px !important;
+}
+
+.auth-page > .auth-form {
+  top: 24vh !important;
+  left: min(60vw, calc(100vw - 500px)) !important;
+  width: 455px !important;
+  padding: 42px 44px !important;
+}
+
+.auth-form .eyebrow,
+.auth-form h2,
+.auth-form label,
+.managed-account-note,
+.back-to-care {
+  margin-left: 0 !important;
+}
+
+.auth-form input,
+.auth-form .password-input {
+  width: 100% !important;
+}
