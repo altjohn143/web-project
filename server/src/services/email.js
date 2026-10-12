@@ -1,36 +1,26 @@
-const { google } = require('googleapis');
-
-const sender = process.env.GMAIL_SENDER;
-const gmailClient = process.env.GMAIL_CLIENT_ID && process.env.GMAIL_CLIENT_SECRET && process.env.GMAIL_REFRESH_TOKEN
-  ? (() => {
-    const auth = new google.auth.OAuth2(process.env.GMAIL_CLIENT_ID, process.env.GMAIL_CLIENT_SECRET);
-    auth.setCredentials({ refresh_token: process.env.GMAIL_REFRESH_TOKEN });
-    return google.gmail({ version: 'v1', auth });
-  })()
-  : null;
+const brevoApiKey = process.env.BREVO_API_KEY;
+const sender = process.env.BREVO_SENDER_EMAIL;
+const senderName = process.env.BREVO_SENDER_NAME || 'ClaraCare';
 const escapeHtml = value => String(value || '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
 
-function encodeMessage({ to, subject, html }) {
-  const recipients = Array.isArray(to) ? to.join(', ') : to;
-  const message = [
-    `From: ${sender}`,
-    `To: ${recipients}`,
-    `Subject: ${subject}`,
-    'MIME-Version: 1.0',
-    'Content-Type: text/html; charset=UTF-8',
-    '',
-    html,
-  ].join('\r\n');
-  return Buffer.from(message).toString('base64url');
-}
-
 async function sendEmail(message) {
-  if (!gmailClient || !sender) throw Object.assign(new Error('Email service is not configured.'), { status: 503 });
+  if (!brevoApiKey || !sender) throw Object.assign(new Error('Email service is not configured.'), { status: 503 });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
   try {
-    await gmailClient.users.messages.send({ userId: 'me', requestBody: { raw: encodeMessage(message) } });
+    const recipients = (Array.isArray(message.to) ? message.to : [message.to]).map(email => ({ email }));
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { accept: 'application/json', 'content-type': 'application/json', 'api-key': brevoApiKey },
+      body: JSON.stringify({ sender: { name: senderName, email: sender }, to: recipients, subject: message.subject, htmlContent: message.html }),
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error(`Brevo returned ${response.status}: ${await response.text()}`);
   } catch (error) {
-    console.error('Gmail API email error:', error.message);
+    console.error('Brevo email error:', error.message);
     throw Object.assign(new Error('We could not send the email. Please try again.'), { status: 502 });
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
