@@ -601,8 +601,33 @@
 
 .appointment-page .phone-fields {
   display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-columns: 110px minmax(0, 1fr);
   gap: 8px;
+}
+
+.appointment-page .country-code-control {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  height: 44px;
+  padding-left: 11px;
+  border: 1px solid rgba(15, 111, 116, 0.28);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.appointment-page .country-code-control span {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.appointment-page .patient-form .country-code-control select {
+  height: 42px;
+  padding: 0 22px 0 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 14px;
 }
 
 .appointment-page .optional-label {
