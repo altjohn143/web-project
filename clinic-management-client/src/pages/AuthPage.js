@@ -67,16 +67,20 @@ export default function AuthPage() {
         </div>
         <div className="auth-trust-cards" aria-hidden="true">
           <article>
-            <b>24/7</b>
-            <span>Clinic access</span>
+            <b>20K+</b>
+            <span>Patients served successfully</span>
           </article>
           <article>
-            <b>100K+</b>
-            <span>Patient records</span>
+            <b>30+</b>
+            <span>Board-certified specialists</span>
           </article>
           <article>
-            <b>50+</b>
-            <span>Care tools</span>
+            <b>18</b>
+            <span>Medical departments</span>
+          </article>
+          <article>
+            <b>4.9/5</b>
+            <span>Average patient satisfaction</span>
           </article>
         </div>
       </section>
@@ -106,7 +110,7 @@ export default function AuthPage() {
         </label>
         {error && <div className="form-error">{error}</div>}
         <button className="primary full" disabled={busy}>
-          {busy ? "Please wait..." : "Sign in"} <span>-&gt;</span>
+          {busy ? "Please wait..." : "Sign in"}
         </button>
         <p className="managed-account-note">
           Need access? Contact a ClaraCare administrator.

@@ -1223,3 +1223,193 @@ body:has(.auth-page),
 .auth-form .password-input {
   width: 100% !important;
 }
+
+/* Keep the lower login elements aligned inside the viewport. */
+.auth-trust-cards {
+  left: 104px !important;
+  top: auto !important;
+  bottom: 64px !important;
+  width: 620px !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.auth-trust-cards article {
+  min-height: 92px !important;
+  padding: 20px 26px !important;
+}
+
+.auth-page > .auth-form {
+  top: 20vh !important;
+  padding: 34px 44px 30px !important;
+}
+
+.auth-form h2 {
+  margin-bottom: 22px !important;
+}
+
+.auth-form label {
+  margin: 12px 0 16px !important;
+}
+
+.auth-form .primary.full {
+  margin-top: 18px !important;
+}
+
+.managed-account-note {
+  margin: 16px 0 0 !important;
+}
+
+.back-to-care {
+  margin: 22px auto 0 !important;
+}
+
+/* Lift top accents and sign-in panel so they do not cover the doctor. */
+.auth-bars {
+  top: 132px !important;
+}
+
+.auth-page > .auth-form {
+  top: 16vh !important;
+}
+
+/* Prevent the top logo and accent bars from overlapping each other or the doctor. */
+.auth-brand .brand {
+  top: 46px !important;
+  left: 126px !important;
+}
+
+.auth-bars {
+  top: 170px !important;
+  left: 96px !important;
+  gap: 80px !important;
+  align-items: center !important;
+}
+
+.auth-bars span:nth-child(1) {
+  width: 315px !important;
+}
+
+.auth-bars span:nth-child(2) {
+  width: 315px !important;
+}
+
+.auth-bars span:nth-child(3) {
+  width: 125px !important;
+  transform: none !important;
+}
+
+/* Match the requested top hero reference. */
+.auth-brand .brand {
+  top: 50px !important;
+  left: 48px !important;
+  gap: 16px !important;
+}
+
+.auth-brand .brand-mark {
+  width: 42px !important;
+  height: 42px !important;
+}
+
+.auth-brand .brand-mark svg {
+  width: 25px !important;
+  height: 25px !important;
+}
+
+.auth-brand .brand > span:last-child {
+  font-size: 25px !important;
+  gap: 11px !important;
+  letter-spacing: 0.14em !important;
+}
+
+.auth-brand .brand em {
+  font-size: 23px !important;
+}
+
+.auth-page > .auth-brand::before {
+  inset: 96px 26px auto 0 !important;
+}
+
+.auth-bars {
+  top: 104px !important;
+  left: 48px !important;
+  gap: 36px !important;
+}
+
+.auth-bars span {
+  height: 40px !important;
+}
+
+.auth-bars span:nth-child(1) {
+  width: 145px !important;
+}
+
+.auth-bars span:nth-child(2) {
+  width: 145px !important;
+}
+
+.auth-bars span:nth-child(3) {
+  width: 245px !important;
+}
+
+.auth-hero-copy {
+  left: 48px !important;
+  top: 180px !important;
+  max-width: 330px !important;
+}
+
+.auth-hero-copy span {
+  font-size: 12px !important;
+  letter-spacing: 0.14em !important;
+}
+
+.auth-hero-copy p {
+  max-width: 330px !important;
+  font-size: 15px !important;
+  line-height: 1.42 !important;
+}
+
+.auth-photo-wrap {
+  top: 168px !important;
+  right: 505px !important;
+}
+
+/* Reference-style vertical stats on the left side. */
+.auth-trust-cards {
+  left: 48px !important;
+  top: 300px !important;
+  bottom: auto !important;
+  width: 300px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 30px !important;
+  z-index: 6 !important;
+}
+
+.auth-trust-cards article,
+.auth-trust-cards article:nth-child(3) {
+  display: block !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.auth-trust-cards b {
+  color: #073f79 !important;
+  font-size: 36px !important;
+  font-weight: 900 !important;
+  line-height: 0.95 !important;
+  text-shadow: none !important;
+}
+
+.auth-trust-cards span {
+  display: block !important;
+  margin-top: 6px !important;
+  color: #073f79 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+  text-shadow: none !important;
+}
