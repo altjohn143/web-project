@@ -821,39 +821,102 @@
   font-weight: 400;
 }
 
-.appointment-page .time-slot-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 7px;
-  margin-top: 8px;
+.appointment-page .clock-instruction {
+  margin: 7px 0 6px;
+  color: #0f6f74;
+  font-size: 11px;
+  line-height: 1.35;
 }
 
-.appointment-page .time-slot {
-  min-width: 0;
-  min-height: 36px;
-  border: 1px solid rgba(15, 111, 116, 0.28);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.74);
-  color: #075b64;
-  cursor: pointer;
-  font: 700 12px/1 "DM Sans";
-  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
-}
-
-.appointment-page .time-slot:hover,
-.appointment-page .time-slot:focus-visible {
-  border-color: #078985;
-  background: #e3f7f6;
-  box-shadow: 0 5px 12px rgba(7, 137, 133, 0.16);
-  outline: none;
-  transform: translateY(-2px);
-}
-
-.appointment-page .time-slot.selected {
-  border-color: transparent;
-  background: linear-gradient(135deg, #0784d8, #0aa69c);
-  box-shadow: 0 6px 14px rgba(7, 132, 216, 0.25);
+.appointment-page .clock-selection {
+  width: fit-content;
+  margin: 0 auto 4px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0784d8, #0aa69c);
   color: #fff;
+  font: 800 12px/1 "DM Sans";
+}
+
+.appointment-page .time-clock {
+  display: block;
+  width: min(100%, 218px);
+  height: auto;
+  margin: 0 auto;
+  touch-action: none;
+}
+
+.appointment-page .clock-face {
+  fill: rgba(255, 255, 255, 0.78);
+  stroke: rgba(15, 111, 116, 0.28);
+  stroke-width: 1.5;
+}
+
+.appointment-page .clock-tick {
+  stroke: rgba(15, 111, 116, 0.34);
+  stroke-width: 1.4;
+}
+
+.appointment-page .clock-tick.major {
+  stroke: #078985;
+  stroke-width: 2.5;
+}
+
+.appointment-page .clock-number {
+  fill: #075b64;
+  font: 700 13px "DM Sans";
+  pointer-events: none;
+}
+
+.appointment-page .clock-hand {
+  stroke-linecap: round;
+  transition: stroke 140ms ease;
+}
+
+.appointment-page .hour-hand {
+  stroke: #073f79;
+  stroke-width: 8;
+}
+
+.appointment-page .minute-hand {
+  stroke: #0aa69c;
+  stroke-width: 4;
+}
+
+.appointment-page .clock-hand.dragging {
+  stroke: #0784d8;
+}
+
+.appointment-page .clock-center {
+  fill: #073f79;
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.appointment-page .clock-handle {
+  cursor: grab;
+  outline: none;
+  transition: r 140ms ease, filter 140ms ease;
+}
+
+.appointment-page .clock-handle:active {
+  cursor: grabbing;
+}
+
+.appointment-page .hour-handle {
+  fill: #073f79;
+  stroke: #fff;
+  stroke-width: 3;
+}
+
+.appointment-page .minute-handle {
+  fill: #0aa69c;
+  stroke: #fff;
+  stroke-width: 3;
+}
+
+.appointment-page .clock-handle:focus-visible {
+  filter: drop-shadow(0 0 5px rgba(7, 132, 216, 0.7));
 }
 
 .appointment-page .patient-form .full {
@@ -913,7 +976,4 @@
     grid-template-columns: 1fr;
   }
 
-  .appointment-page .time-slot-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }

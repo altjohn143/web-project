@@ -24,6 +24,77 @@ const officeTimeSlots = Array.from({ length: 19 }, (_, index) => {
   const displayHour = hour % 12 || 12;
   return { value, label: `${displayHour}:${String(minute).padStart(2, "0")} ${hour < 12 ? "AM" : "PM"}` };
 });
+const clockHours = [8, 9, 10, 11, 12, 1, 2, 3, 4, 5];
+
+const formatTime = value => officeTimeSlots.find(slot => slot.value === value)?.label || "Choose a time";
+const pointForAngle = (angle, radius) => {
+  const radians = angle * Math.PI / 180;
+  return { x: 110 + radius * Math.sin(radians), y: 110 - radius * Math.cos(radians) };
+};
+
+function AnalogTimePicker({ value, onChange }) {
+  const [dragging, setDragging] = useState("");
+  const [selectedHour, selectedMinute] = value ? value.split(":").map(Number) : [8, 0];
+  const minuteAngle = selectedMinute * 6;
+  const hourAngle = (selectedHour % 12) * 30 + selectedMinute * .5;
+  const hourPoint = pointForAngle(hourAngle, 51);
+  const minutePoint = pointForAngle(minuteAngle, 74);
+
+  const updateFromPointer = (event, hand) => {
+    const svg = event.currentTarget.ownerSVGElement;
+    const bounds = svg.getBoundingClientRect();
+    const x = event.clientX - bounds.left - bounds.width / 2;
+    const y = event.clientY - bounds.top - bounds.height / 2;
+    const angle = (Math.atan2(y, x) * 180 / Math.PI + 90 + 360) % 360;
+    let hour = selectedHour;
+    let minute = selectedMinute;
+
+    if (hand === "hour") {
+      const target = Math.round(angle / 30) % 12 || 12;
+      const closestHour = clockHours.reduce((closest, candidate) => {
+        const distance = Math.abs(candidate - target);
+        const wrappedDistance = Math.min(distance, 12 - distance);
+        const currentDistance = Math.abs(closest - target);
+        return wrappedDistance < Math.min(currentDistance, 12 - currentDistance) ? candidate : closest;
+      }, clockHours[0]);
+      hour = closestHour >= 8 ? closestHour : closestHour + 12;
+    } else {
+      minute = Math.round(angle / 180) * 30 % 60;
+    }
+    onChange(`${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`);
+  };
+
+  const beginDrag = (event, hand) => {
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setDragging(hand);
+    updateFromPointer(event, hand);
+  };
+
+  return <fieldset className="time-slot-picker analog-time-picker">
+    <legend>Preferred time <small>Clinic hours: 8:00 AM–5:00 PM</small></legend>
+    <p className="clock-instruction">Drag the short hand for the hour and the long hand for :00 or :30.</p>
+    <div className="clock-selection" aria-live="polite">{formatTime(value)}</div>
+    <svg className="time-clock" viewBox="0 0 220 220" role="group" aria-label="Interactive appointment clock">
+      <circle className="clock-face" cx="110" cy="110" r="98" />
+      {Array.from({ length: 12 }, (_, index) => {
+        const angle = index * 30;
+        const start = pointForAngle(angle, 84);
+        const end = pointForAngle(angle, index % 3 === 0 ? 92 : 89);
+        return <line key={index} className={index % 3 === 0 ? "clock-tick major" : "clock-tick"} x1={start.x} y1={start.y} x2={end.x} y2={end.y} />;
+      })}
+      {clockHours.map(hour => {
+        const point = pointForAngle((hour % 12) * 30, 72);
+        return <text key={hour} className="clock-number" x={point.x} y={point.y + 4} textAnchor="middle">{hour}</text>;
+      })}
+      <line className={`clock-hand hour-hand ${dragging === "hour" ? "dragging" : ""}`} x1="110" y1="110" x2={hourPoint.x} y2={hourPoint.y} />
+      <line className={`clock-hand minute-hand ${dragging === "minute" ? "dragging" : ""}`} x1="110" y1="110" x2={minutePoint.x} y2={minutePoint.y} />
+      <circle className="clock-center" cx="110" cy="110" r="7" />
+      <circle className="clock-handle hour-handle" cx={hourPoint.x} cy={hourPoint.y} r="12" role="slider" aria-label="Appointment hour" aria-valuetext={formatTime(`${String(selectedHour).padStart(2, "0")}:${String(selectedMinute).padStart(2, "0")}`)} tabIndex="0" onPointerDown={event => beginDrag(event, "hour")} onPointerMove={event => dragging === "hour" && updateFromPointer(event, "hour")} onPointerUp={() => setDragging("")} onPointerCancel={() => setDragging("")} />
+      <circle className="clock-handle minute-handle" cx={minutePoint.x} cy={minutePoint.y} r="11" role="slider" aria-label="Appointment minutes" aria-valuetext={selectedMinute === 0 ? "zero minutes" : "thirty minutes"} tabIndex="0" onPointerDown={event => beginDrag(event, "minute")} onPointerMove={event => dragging === "minute" && updateFromPointer(event, "minute")} onPointerUp={() => setDragging("")} onPointerCancel={() => setDragging("")} />
+    </svg>
+  </fieldset>;
+}
 
 const initialForm = {
   firstName: "", middleName: "", lastName: "", country: "PH", phone: "",
@@ -104,12 +175,7 @@ export default function PatientAppointmentPage() {
                 <label>Preferred date<small>Monday–Friday only</small><input name="date" type="date" min={today} value={form.date} onChange={update} required /></label>
                 <label>What can we help you with?<small>We’ll assign the right practitioner automatically.</small><select name="careType" value={form.careType} onChange={update} required><option value="">Select a type of care</option>{careOptions.map(option => <option key={option} value={option}>{option}</option>)}</select></label>
               </div>
-              <fieldset className="time-slot-picker">
-                <legend>Preferred time <small>Clinic hours: 8:00 AM–5:00 PM</small></legend>
-                <div className="time-slot-grid" role="group" aria-label="Preferred appointment time">
-                  {officeTimeSlots.map(slot => <button key={slot.value} type="button" className={form.time === slot.value ? "time-slot selected" : "time-slot"} aria-pressed={form.time === slot.value} onClick={() => setForm({ ...form, time: slot.value })}>{slot.label}</button>)}
-                </div>
-              </fieldset>
+              <AnalogTimePicker value={form.time} onChange={time => setForm({ ...form, time })} />
             </div>
             {error && <div className="form-error">{error}</div>}<button className="primary full" disabled={busy}>{busy ? "Sending code..." : "Send verification code"}</button><p className="form-note">We’ll email a verification code before your request is submitted.</p>
           </>}
