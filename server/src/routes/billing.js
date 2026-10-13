@@ -64,9 +64,7 @@ router.put('/:id', access, rules, valid, async (req, res, next) => { try {
   if (existing.status === 'Paid') return res.status(422).json({ message: 'Paid billing records are final and cannot be edited.' });
   if (!req.body.patient) req.body.patient = String(existing.patient);
   if (String(existing.patient) !== String(req.body.patient)) return res.status(422).json({ message: 'The patient on an existing billing record cannot be changed.' });
-  const { subtotal, discountAmount, amount } = totals(req.body), paid = Number(req.body.amountPaid);
-  if (!Number.isFinite(paid) || paid <= 0) return res.status(422).json({ message: 'Amount paid must be greater than 0.' });
-  if (paid < amount) return res.status(422).json({ message: 'Only full payments can be registered. Amount paid must cover the discounted total.' });
+  const { subtotal, discountAmount, amount } = totals(req.body), paid = amount;
   const item = await Invoice.findByIdAndUpdate(req.params.id, { description: req.body.description, dueDate: req.body.dueDate, discountType: req.body.discountType || 'None', paymentMethod: req.body.paymentMethod || 'Cash', subtotal, discountAmount, amount, amountPaid: paid, status: 'Paid', paymentDate: new Date(), cashier: req.user.id, receiptNumber: existing.receiptNumber || `CC-${Date.now()}` }, { returnDocument: 'after', runValidators: true });
   res.json(publicInvoice(item));
 } catch (error) { next(error); } });
