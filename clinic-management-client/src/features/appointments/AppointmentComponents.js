@@ -27,7 +27,7 @@ export function AppointmentList({ items, loading }) {
     </article>
   );
 }
-function AppointmentRow({ item, user, onView, onEdit, onDelete, onStatus }) {
+function AppointmentRow({ item, user, onView, onEdit, onDelete, onStatus, onCheckIn }) {
   const date = new Date(item.date),
     doctor = user?.role === "doctor",
     final = ["Completed", "Cancelled", "No-show"].includes(item.status);
@@ -91,6 +91,11 @@ function AppointmentRow({ item, user, onView, onEdit, onDelete, onStatus }) {
               </button>
             </>
           )}
+          {user?.role === "receptionist" && ["Pending", "Confirmed"].includes(item.status) && onCheckIn && (
+            <button className="confirm-action" onClick={() => onCheckIn(item)}>
+              Forward to nurse
+            </button>
+          )}
           {!doctor && !final && onDelete && (
             <button onClick={() => onDelete(item._id)} aria-label="Delete">
               <Trash2 />
@@ -116,6 +121,7 @@ export function Appointments({
   onEdit,
   onDelete,
   onStatus,
+  onCheckIn,
   loading,
   error,
 }) {
@@ -159,6 +165,7 @@ export function Appointments({
               onEdit={onEdit}
               onDelete={onDelete}
               onStatus={onStatus}
+              onCheckIn={onCheckIn}
             />
           ))
         )}

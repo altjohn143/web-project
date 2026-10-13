@@ -70,7 +70,6 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/billing', require('./routes/billing'));
 app.use('/api/laboratory', require('./routes/laboratory'));
 app.use('/api/workflows', require('./routes/workflows'));
-app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.get('/api/doctors', require('./middleware/auth'), async (_req, res, next) => { try { const User = require('./models/User'); const doctors = await User.find({ role: 'doctor', isActive: { $ne: false } }).select('name email specialty role'); res.json(doctors); } catch (error) { next(error); } });
 app.get('/api/dashboard', require('./middleware/auth'), async (req, res, next) => {

@@ -31,7 +31,7 @@ export default function Dashboard({ user, items, onAdd, loading }) {
         </section>
         <Ticker />
         <section className="stats">
-          <article><div className="stat-icon">{billing ? <DollarSign /> : <FlaskConical />}</div><span>{billing ? "Invoices" : "Laboratory records"}</span><strong>{billing ? metrics.invoices || 0 : metrics.laboratory || 0}</strong><small>MongoDB records</small></article>
+          <article><div className="stat-icon">{billing ? <DollarSign /> : <FlaskConical />}</div><span>{billing ? "Invoices" : "Laboratory records"}</span><strong>{billing ? metrics.invoices || 0 : metrics.laboratory || 0}</strong><small>Records</small></article>
           <article><div className="stat-icon"><Users /></div><span>Registered patients</span><strong>{metrics.patients}</strong><small>Patient directory</small></article>
         </section>
       </div>

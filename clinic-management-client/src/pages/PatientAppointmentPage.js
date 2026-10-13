@@ -110,7 +110,7 @@ function TimePickerModal({ value, onChange, onClose }) {
 
 const initialForm = {
   firstName: "", middleName: "", lastName: "", country: "PH", phone: "",
-  email: "", careType: "", date: "", time: "",
+  email: "", birthDate: "", sex: "", careType: "", date: "", time: "",
 };
 
 function isOfficeHours(value) {
@@ -182,6 +182,10 @@ export default function PatientAppointmentPage() {
             <div className="form-row contact-row">
               <label>Phone number<small>{isPhilippineNumber ? "Philippine mobile number" : "Enter 7 to 15 digits"}</small><div className="phone-fields"><select name="country" value={form.country} onChange={update} aria-label="Country">{countryOptions.map(option => <option key={option.country} value={option.country}>{option.country} {option.code}</option>)}</select><input name="phone" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })} inputMode="numeric" autoComplete="tel-national" pattern={isPhilippineNumber ? "9[0-9]{9}" : "[0-9]{7,15}"} title={isPhilippineNumber ? "Enter 10 digits starting with 9, for example 9123456789." : "Enter 7 to 15 digits."} placeholder={isPhilippineNumber ? "9123456789" : "Phone number"} maxLength={isPhilippineNumber ? "10" : "15"} required /></div></label>
               <label>Email address <small>We’ll verify this before submitting your request.</small><input name="email" type="email" value={form.email} onChange={update} autoComplete="email" inputMode="email" title="Enter a valid email address, including @." required /></label>
+            </div>
+            <div className="form-row">
+              <label>Birth date<input name="birthDate" type="date" max={today} value={form.birthDate} onChange={update} required /></label>
+              <label>Sex<select name="sex" value={form.sex} onChange={update} required><option value="">Select sex</option><option>Female</option><option>Male</option><option>Other</option></select></label>
             </div>
             <div className="form-row schedule-row">
               <label>Preferred date<small>Monday–Friday only</small><input name="date" type="date" min={today} value={form.date} onChange={update} required /></label>

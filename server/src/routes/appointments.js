@@ -63,6 +63,8 @@ const otpRules = [
       : 'Enter a phone number containing 7 to 15 digits.');
     return true;
   }),
+  body('birthDate').isISO8601().withMessage('Enter a valid birth date.').toDate(),
+  body('sex').isIn(['Female', 'Male', 'Other']).withMessage('Select the patient’s sex.'),
 ];
 const otpRequestLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false, message: { message: 'Too many verification requests. Please try again in 15 minutes.' } });
 const otpVerifyLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, message: { message: 'Too many verification attempts. Please try again later.' } });
@@ -71,6 +73,8 @@ const appointmentRequest = (body, doctor) => ({
   patient: patientName(body),
   email: body.email.toLowerCase(),
   phone: `${body.countryCode}${body.phone}`,
+  birthDate: body.birthDate,
+  sex: body.sex,
   reason: body.careType,
   doctor: doctor.name,
   date: body.date,
@@ -149,8 +153,7 @@ async function syncCompletedAppointment(appointment, actorId) {
     patient.email = appointment.email || patient.email; patient.phone = appointment.phone;
     patient.birthDate = appointment.birthDate; patient.sex = appointment.sex;
     patient.address = appointment.address || patient.address;
-    if (!patient.assignedDoctors) patient.assignedDoctors = [];
-    if (!patient.assignedDoctors.some(id => id.equals(doctor._id))) patient.assignedDoctors.push(doctor._id);
+    patient.assignedDoctors = [doctor._id];
     await patient.save();
   }
   const record = await MedicalRecord.findOneAndUpdate(
@@ -173,7 +176,7 @@ router.get('/', async (req, res, next) => {
   try {
     const user = await currentUser(req);
     if (!user) return res.status(401).json({ message: 'User not found' });
-    if (!['superadmin', 'admin', 'receptionist', 'doctor', 'nurse'].includes(user.role)) return res.status(403).json({ message: 'Appointment access denied' });
+    if (!['receptionist', 'superadmin'].includes(user.role)) return res.status(403).json({ message: 'Appointment request access is limited to reception staff or view-only superadmin review.' });
     // An appointment left pending after its scheduled day is no longer expected
     // at reception. Keep it for the audit trail, but move it to No-show.
     const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -182,7 +185,6 @@ router.get('/', async (req, res, next) => {
     const limit = Math.min(+req.query.limit || 10, 50);
     const q = req.query.q?.trim();
     const filters = [];
-    if (user.role === 'doctor') filters.push({ doctor: user.name });
     if (q) filters.push({ $or: [{ patient: { $regex: q, $options: 'i' } }, { doctor: { $regex: q, $options: 'i' } }] });
     const filter = filters.length ? { $and: filters } : {};
     const [data, total] = await Promise.all([

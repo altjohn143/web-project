@@ -23,7 +23,7 @@ export default function AuthPage() {
       setError(
         e.response?.data?.message ||
           e.response?.data?.errors?.[0]?.msg ||
-          "Unable to connect. Check the server and MongoDB.",
+          "Unable to connect. Check the server connection and try again.",
       );
     } finally {
       setBusy(false);

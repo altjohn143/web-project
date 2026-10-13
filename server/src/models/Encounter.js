@@ -3,9 +3,9 @@ const vitalSchema = new mongoose.Schema({ temperature: Number, bloodPressure: St
 module.exports = mongoose.model('Encounter', new mongoose.Schema({
   appointment: { type: mongoose.Schema.Types.ObjectId, ref: 'Appointment', required: true, unique: true },
   patient: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
-  doctor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  doctor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   queueNumber: { type: Number, required: true }, queueDate: { type: Date, required: true },
-  status: { type: String, enum: ['Waiting', 'In consultation', 'Completed', 'No-show'], default: 'Waiting' },
+  status: { type: String, enum: ['Awaiting vitals', 'Waiting', 'In consultation', 'Completed', 'No-show'], default: 'Awaiting vitals' },
   vitals: vitalSchema, followUpDate: Date, followUpNotes: String,
   previousEncounter: { type: mongoose.Schema.Types.ObjectId, ref: 'Encounter' },
   checkedInBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

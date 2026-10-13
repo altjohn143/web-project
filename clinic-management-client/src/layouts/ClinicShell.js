@@ -8,27 +8,26 @@ import Dashboard from "../pages/DashboardPage";
 import ProfilePage from "../pages/ProfilePage";
 import SettingsPage from "../pages/SettingsPage";
 import { Appointments, AppointmentModal } from "../features/appointments/AppointmentComponents";
-import { Doctors, StaffAccounts, Module } from "../features/staff/StaffPages";
+import { Doctors, StaffAccounts } from "../features/staff/StaffPages";
 import { BillingPage, LaboratoryPage } from "../OperationsPages";
-import { DocumentsPage, InventoryPage, NotificationsPage, PrescriptionsPage, QueuePage, ReferralsPage } from "../WorkflowPages";
+import { DocumentsPage, NotificationsPage, PrescriptionsPage, QueuePage } from "../WorkflowPages";
+import { PatientsPage, RecordsPage } from "../DataPages";
 import { confirmDialog } from "../components/common/AppDialogs";
 
 export default function ClinicShell() {
   const { user, logout } = useAuth();
   const role = user.role;
   const isSuper = role === "superadmin";
-  const isAdmin = ["admin", "superadmin"].includes(role);
-  const appointmentAccess = ["superadmin", "admin", "receptionist", "doctor", "nurse"].includes(role);
-  const canSchedule = ["superadmin", "admin", "receptionist"].includes(role);
+  const isAdmin = role === "admin";
+  const appointmentAccess = ["receptionist", "superadmin"].includes(role);
+  const canSchedule = ["admin", "receptionist"].includes(role);
   const recordAccess = ["superadmin", "admin", "doctor", "nurse"].includes(role);
   const billingAccess = ["superadmin", "admin", "billing"].includes(role);
-  const laboratoryAccess = ["superadmin", "admin", "doctor", "nurse", "laboratory"].includes(role);
+  const laboratoryAccess = ["superadmin", "admin", "doctor", "laboratory"].includes(role);
   const staffAccess = ["superadmin", "admin"].includes(role);
-  const queueAccess = ["superadmin", "admin", "receptionist", "doctor", "nurse"].includes(role);
-  const prescriptionAccess = ["superadmin", "admin", "doctor", "nurse"].includes(role);
-  const referralAccess = ["superadmin", "admin", "receptionist", "doctor", "nurse"].includes(role);
-  const inventoryAccess = ["superadmin", "admin", "nurse", "laboratory"].includes(role);
-  const documentAccess = ["superadmin", "admin", "doctor", "nurse"].includes(role);
+  const queueAccess = ["admin", "doctor", "nurse"].includes(role);
+  const prescriptionAccess = ["superadmin", "admin", "doctor"].includes(role);
+  const documentAccess = ["superadmin", "admin"].includes(role);
   const roleLabels = {
     superadmin: "Superadmin",
     admin: "Administrator",
@@ -71,7 +70,7 @@ export default function ClinicShell() {
       setTotal(data.total);
     } catch (e) {
       setError(
-        "API unavailable. Start the server and MongoDB to load records.",
+        "API unavailable. Start the server and try loading the records again.",
       );
     } finally {
       setLoading(false);
@@ -131,6 +130,15 @@ export default function ClinicShell() {
       );
     }
   };
+  const checkIn = async (item) => {
+    try {
+      setError("");
+      await api.post(`/workflows/check-in/${item._id}`);
+      await load();
+    } catch (e) {
+      setError(e.response?.data?.message || "Unable to forward this patient to nursing.");
+    }
+  };
   const remove = async (id) => {
     if (await confirmDialog({ title: "Delete appointment", message: "Delete this appointment? This action cannot be undone.", confirmLabel: "Delete" })) {
       await api.delete(`/appointments/${id}`);
@@ -170,23 +178,23 @@ export default function ClinicShell() {
                     ? "Laboratory workspace"
                     : "Clinical workspace"}
           </p>
-          <NavLink to="/dashboard" data-tooltip="Dashboard" aria-label="Dashboard">
+          {!isSuper && <NavLink to="/dashboard" data-tooltip="Dashboard" aria-label="Dashboard">
             <LayoutDashboard />{" "}
             {isSuper
               ? "System overview"
               : isAdmin
                 ? "Clinic overview"
                 : "My dashboard"}
-          </NavLink>
+          </NavLink>}
           {appointmentAccess && <NavLink to="/appointments" data-tooltip="Appointments" aria-label="Appointments">
             <CalendarDays /> {role === "doctor" ? "My appointments" : "Appointments"}{" "}
             <b>{total}</b>
           </NavLink>}
-          {queueAccess && <NavLink to="/queue" data-tooltip="Live queue" aria-label="Live queue">
-            <Activity /> Live queue
+          {queueAccess && <NavLink to="/queue" data-tooltip={role === "nurse" ? "Vitals intake" : role === "doctor" ? "My assigned appointments" : "Live queue"} aria-label="Live queue">
+            <Activity /> {role === "nurse" ? "Vitals intake" : role === "doctor" ? "My assigned appointments" : "Live queue"}
           </NavLink>}
-          <NavLink to="/patients" data-tooltip="Patients" aria-label="Patients">
-            <Users /> Patients
+          <NavLink to="/patients" data-tooltip="Patient Records" aria-label="Patient Records">
+            <Users /> Patient Records
           </NavLink>
           {isAdmin && (
             <NavLink to="/doctors" data-tooltip="Doctors" aria-label="Doctors">
@@ -209,12 +217,6 @@ export default function ClinicShell() {
           </NavLink>}
           {prescriptionAccess && <NavLink to="/prescriptions" data-tooltip="Prescriptions" aria-label="Prescriptions">
             <ClipboardPlus /> Prescriptions
-          </NavLink>}
-          {referralAccess && <NavLink to="/referrals" data-tooltip="Referrals" aria-label="Referrals">
-            <Users /> Referrals
-          </NavLink>}
-          {inventoryAccess && <NavLink to="/inventory" data-tooltip="Inventory" aria-label="Inventory">
-            <ClipboardPlus /> Inventory
           </NavLink>}
           {documentAccess && <NavLink to="/documents" data-tooltip="Documents" aria-label="Documents">
             <ClipboardPlus /> Documents
@@ -276,7 +278,7 @@ export default function ClinicShell() {
           <Route
             path="/"
             element={
-              <Dashboard
+              isSuper ? <Navigate to="/records" replace /> : <Dashboard
                 user={user}
                 items={items}
                 total={total}
@@ -295,7 +297,7 @@ export default function ClinicShell() {
           <Route
             path="/dashboard"
             element={
-              <Dashboard
+              isSuper ? <Navigate to="/records" replace /> : <Dashboard
                 user={user}
                 items={items}
                 total={total}
@@ -322,9 +324,10 @@ export default function ClinicShell() {
                       }
                     : null
                 }
-                onEdit={role === "nurse" ? null : openEdit}
+                onEdit={role === "receptionist" ? openEdit : null}
                 onDelete={canSchedule ? remove : null}
                 onStatus={changeStatus}
+                onCheckIn={role === "receptionist" ? checkIn : null}
                 loading={loading}
                 error={error}
               />
@@ -333,13 +336,7 @@ export default function ClinicShell() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route
             path="/patients"
-            element={
-              <Module
-                title="Patients"
-                text="Patient registration and demographic records connect here."
-                icon={<Users />}
-              />
-            }
+            element={<PatientsPage />}
           />
           {isAdmin && (
             <Route path="/doctors" element={<Doctors user={user} />} />
@@ -348,19 +345,13 @@ export default function ClinicShell() {
           {recordAccess && <Route
             path="/records"
             element={
-              <Module
-                title="Medical records"
-                text="Clinical notes and patient history are protected behind authentication."
-                icon={<ClipboardPlus />}
-              />
+              <RecordsPage />
             }
           />}
           {billingAccess && <Route path="/billing" element={<BillingPage />} />}
           {laboratoryAccess && <Route path="/laboratory" element={<LaboratoryPage />} />}
           {queueAccess && <Route path="/queue" element={<QueuePage />} />}
           {prescriptionAccess && <Route path="/prescriptions" element={<PrescriptionsPage />} />}
-          {referralAccess && <Route path="/referrals" element={<ReferralsPage />} />}
-          {inventoryAccess && <Route path="/inventory" element={<InventoryPage />} />}
           {documentAccess && <Route path="/documents" element={<DocumentsPage />} />}
           <Route path="/notifications" element={<NotificationsPage />} />
           {isAdmin && (

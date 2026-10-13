@@ -39,7 +39,7 @@ export function PatientsPage() {
   return (
     <CrudPage
       type="patients"
-      title="Patients"
+      title="Patient Records"
       icon={<Users />}
       blank={patientBlank}
     />
@@ -60,9 +60,9 @@ function CrudPage({ type, title, icon, blank }) {
   const { user } = useAuth();
   const canWrite =
     type === "patients"
-      ? ["superadmin", "admin", "receptionist"].includes(user.role)
-      : ["superadmin", "admin", "doctor"].includes(user.role);
-  const canDelete = ["superadmin", "admin"].includes(user.role);
+      ? ["admin", "receptionist"].includes(user.role)
+      : ["admin", "doctor"].includes(user.role);
+  const canDelete = user.role === "admin";
   const [items, setItems] = useState([]),
     [page, setPage] = useState(1),
     [pages, setPages] = useState(1),
@@ -347,8 +347,9 @@ function DetailsModal({ type, item, onClose }) {
 }
 
 function DataModal({ type, item, blank, onClose, onSave }) {
+  const { user } = useAuth();
   const normalize = () => {
-    if (!item) return blank;
+    if (!item) return type === "records" && user.role === "doctor" ? { ...blank, doctor: user.id } : blank;
     if (type === "patients")
       return {
         firstName: item.firstName,
@@ -461,8 +462,9 @@ function DataModal({ type, item, blank, onClose, onSave }) {
                 value={form.doctor}
                 onChange={(e) => setForm({ ...form, doctor: e.target.value })}
                 required
+                disabled={user.role === "doctor"}
               >
-                <option value="">Select doctor</option>
+                {user.role === "doctor" ? <option value={user.id}>{user.name}</option> : <option value="">Select doctor</option>}
                 {doctors.map((d) => (
                   <option key={d._id} value={d._id}>
                     {d.name} — {d.specialty}
