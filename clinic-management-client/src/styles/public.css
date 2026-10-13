@@ -138,9 +138,10 @@
 }
 
 .public-page:has(.public-hero) .public-brand {
-  position: fixed;
+  /* Keep the logo in the same header coordinate system as the floating navigation. */
+  position: absolute;
   left: 40px;
-  top: 62px;
+  top: 24px;
   z-index: 21;
   color: #052f38;
   font: 900 24px/1 "DM Sans";

@@ -25,7 +25,8 @@ function isDuringOfficeHours(value) {
   const [hour, minute] = timePart.slice(0, 5).split(':').map(Number);
   const date = new Date(Date.UTC(year, month - 1, day));
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
-    && date.getUTCDay() >= 1 && date.getUTCDay() <= 5 && hour >= 8 && hour < 17 && minute >= 0 && minute < 60;
+    && date.getUTCDay() >= 1 && date.getUTCDay() <= 5 && hour >= 8 && hour <= 17
+    && minute >= 0 && minute < 60 && (hour < 17 || minute === 0);
 }
 
 const patientName = body => [body.firstName, body.middleName, body.lastName]

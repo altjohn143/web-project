@@ -16,10 +16,18 @@ const countryOptions = getCountries().map(country => ({
   code: `+${getCountryCallingCode(country)}`,
   name: countryNames.of(country),
 })).sort((a, b) => a.name.localeCompare(b.name));
+const officeTimeSlots = Array.from({ length: 19 }, (_, index) => {
+  const minutesAfterOpening = index * 30;
+  const hour = 8 + Math.floor(minutesAfterOpening / 60);
+  const minute = minutesAfterOpening % 60;
+  const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+  const displayHour = hour % 12 || 12;
+  return { value, label: `${displayHour}:${String(minute).padStart(2, "0")} ${hour < 12 ? "AM" : "PM"}` };
+});
 
 const initialForm = {
   firstName: "", middleName: "", lastName: "", country: "PH", phone: "",
-  email: "", careType: "", date: "",
+  email: "", careType: "", date: "", time: "",
 };
 
 function isOfficeHours(value) {
@@ -39,18 +47,20 @@ export default function PatientAppointmentPage() {
   const [code, setCode] = useState("");
   const selectedCountry = countryOptions.find(option => option.country === form.country);
   const isPhilippineNumber = form.country === "PH";
+  const today = new Date().toLocaleDateString("en-CA");
 
   const update = e => setForm({ ...form, [e.target.name]: e.target.value });
   const submit = async e => {
     e.preventDefault();
     setError("");
-    if (!isOfficeHours(form.date)) {
+    const appointmentDateTime = form.date && form.time ? `${form.date}T${form.time}` : "";
+    if (!isOfficeHours(appointmentDateTime)) {
       setError("Please choose a weekday appointment between 8:00 AM and 5:00 PM.");
       return;
     }
     setBusy(true);
     try {
-      const { data } = await api.post("/appointments/public/send-otp", { ...form, countryCode: selectedCountry.code });
+      const { data } = await api.post("/appointments/public/send-otp", { ...form, date: appointmentDateTime, countryCode: selectedCountry.code });
       setVerificationId(data.verificationId);
     } catch (err) {
       setError(err.response?.data?.message || err.response?.data?.errors?.[0]?.msg || "We couldn't send your verification code. Please try again.");
@@ -90,7 +100,8 @@ export default function PatientAppointmentPage() {
               <label>Email address <small>We’ll verify this before submitting your request.</small><input name="email" type="email" value={form.email} onChange={update} autoComplete="email" inputMode="email" title="Enter a valid email address, including @." required /></label>
             </div>
             <div className="form-row schedule-row">
-              <label>Preferred date and time<small>Monday–Friday, 8:00 AM–5:00 PM</small><input name="date" type="datetime-local" value={form.date} onChange={update} required /></label>
+              <label>Preferred date<small>Monday–Friday only</small><input name="date" type="date" min={today} value={form.date} onChange={update} required /></label>
+              <label>Preferred time<small>Clinic hours: 8:00 AM–5:00 PM</small><select name="time" value={form.time} onChange={update} required><option value="">Select a clinic time</option>{officeTimeSlots.map(slot => <option key={slot.value} value={slot.value}>{slot.label}</option>)}</select></label>
               <label>What can we help you with?<small>We’ll assign the right practitioner automatically.</small><select name="careType" value={form.careType} onChange={update} required><option value="">Select a type of care</option>{careOptions.map(option => <option key={option} value={option}>{option}</option>)}</select></label>
             </div>
             {error && <div className="form-error">{error}</div>}<button className="primary full" disabled={busy}>{busy ? "Sending code..." : "Send verification code"}</button><p className="form-note">We’ll email a verification code before your request is submitted.</p>
