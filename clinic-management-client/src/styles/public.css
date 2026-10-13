@@ -784,12 +784,15 @@
 
 .appointment-page .patient-form .schedule-row {
   margin-top: 8px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .appointment-page .schedule-details {
-  display: grid;
-  gap: 14px;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
 }
 
 .appointment-page .schedule-details label {
