@@ -49,13 +49,14 @@ router.post('/check-in/:appointmentId', async (req, res, next) => { try {
   const user = await actor(req); if (user.role !== 'receptionist') return res.status(403).json({ message: 'Reception access required' });
   const appointment = await Appointment.findById(req.params.appointmentId); if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
   if (!['Pending', 'Confirmed'].includes(appointment.status)) return res.status(422).json({ message: 'Only active appointment requests can be checked in.' });
-  if (await Encounter.exists({ appointment: appointment._id })) return res.status(409).json({ message: 'Patient is already checked in' });
+  const existingEncounter = await Encounter.findOne({ appointment: appointment._id });
+  if (existingEncounter && existingEncounter.status !== 'Reschedule required') return res.status(409).json({ message: 'Patient is already checked in' });
   const names = appointment.patient.trim().split(/\s+/), firstName = names.shift(), lastName = names.join(' ') || 'Patient', identity = { firstName, lastName, phone: appointment.phone };
   let patient = await Patient.findOne(identity);
   if (!patient) patient = await Patient.create({ firstName, lastName, email: appointment.email, phone: appointment.phone || 'Not provided', birthDate: appointment.birthDate || new Date('1900-01-01'), sex: appointment.sex || 'Other', address: appointment.address, createdBy: req.user.id });
   else { patient.email = appointment.email || patient.email; patient.phone = appointment.phone || patient.phone; patient.birthDate = appointment.birthDate || patient.birthDate; patient.sex = appointment.sex || patient.sex; patient.address = appointment.address || patient.address; await patient.save(); }
   const { start, end } = dayRange(), queueNumber = await Encounter.countDocuments({ queueDate: { $gte: start, $lt: end } }) + 1;
-  const encounter = await Encounter.create({ appointment: appointment._id, patient: patient._id, queueNumber, queueDate: new Date(), status: 'Awaiting vitals', checkedInBy: req.user.id });
+  const encounter = existingEncounter ? await Encounter.findByIdAndUpdate(existingEncounter._id, { patient: patient._id, doctor: undefined, queueNumber, queueDate: new Date(), status: 'Awaiting vitals', vitals: undefined, checkedInBy: req.user.id }, { returnDocument: 'after' }) : await Encounter.create({ appointment: appointment._id, patient: patient._id, queueNumber, queueDate: new Date(), status: 'Awaiting vitals', checkedInBy: req.user.id });
   appointment.status = 'Checked in'; await appointment.save();
   await Notification.create({ roles: ['superadmin','nurse'], type: 'Appointment', title: `Vitals needed for patient #${queueNumber}`, message: `${appointment.patient} has been checked in and is ready for nursing assessment.`, link: '/queue' });
   res.status(201).json(await populateEncounter(Encounter.findById(encounter._id)));
@@ -81,6 +82,17 @@ router.post('/queue/:id/confirm-doctor', async (req, res, next) => { try {
   item.doctor = doctor._id; item.status = 'Waiting'; await item.save();
   const patient = await Patient.findById(item.patient); if (patient) { patient.assignedDoctors = [doctor._id]; await patient.save(); }
   await Notification.create({ user: doctor._id, type: 'Appointment', title: `Patient ready for consultation`, message: `${item.appointment.patient} has completed nursing assessment and is assigned to you.`, link: '/queue' });
+  res.json(await populateEncounter(Encounter.findById(item._id)));
+} catch (e) { next(e); } });
+
+router.put('/queue/:id/reschedule', [body('date').isISO8601().toDate().custom(value => value > new Date())], valid, async (req, res, next) => { try {
+  const user = await actor(req); if (user.role !== 'nurse') return res.status(403).json({ message: 'Nursing access required' });
+  const item = await Encounter.findOne({ _id: req.params.id, status: 'Awaiting vitals' });
+  if (!item?.vitals?.recordedAt) return res.status(422).json({ message: 'Record vitals before rescheduling this appointment.' });
+  const appointment = await Appointment.findById(item.appointment); if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
+  appointment.date = req.body.date; appointment.status = 'Pending'; await appointment.save();
+  item.status = 'Reschedule required'; await item.save();
+  await Notification.create({ roles: ['receptionist', 'superadmin'], type: 'Appointment', title: 'Appointment rescheduling required', message: `${appointment.patient} needs a new visit because no requested doctor is currently available.`, link: '/appointments' });
   res.json(await populateEncounter(Encounter.findById(item._id)));
 } catch (e) { next(e); } });
 

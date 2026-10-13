@@ -5,7 +5,7 @@ module.exports = mongoose.model('Encounter', new mongoose.Schema({
   patient: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
   doctor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   queueNumber: { type: Number, required: true }, queueDate: { type: Date, required: true },
-  status: { type: String, enum: ['Awaiting vitals', 'Waiting', 'In consultation', 'Completed', 'No-show'], default: 'Awaiting vitals' },
+  status: { type: String, enum: ['Awaiting vitals', 'Waiting', 'In consultation', 'Completed', 'No-show', 'Reschedule required'], default: 'Awaiting vitals' },
   vitals: vitalSchema, followUpDate: Date, followUpNotes: String,
   previousEncounter: { type: mongoose.Schema.Types.ObjectId, ref: 'Encounter' },
   checkedInBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
