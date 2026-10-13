@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Pencil } from "lucide-react";
 import api from "./api";
 import { useAuth } from "./AuthContext";
-import { confirmDialog } from "./components/common/AppDialogs";
 
 const emptyBill = {
   description: "",
@@ -21,7 +20,6 @@ export function BillingPage() {
     [q, setQ] = useState(""),
     [open, setOpen] = useState(false),
     [edit, setEdit] = useState(null),
-    [patients, setPatients] = useState([]),
     [error, setError] = useState("");
   const load = useCallback(
     () =>
@@ -40,12 +38,6 @@ export function BillingPage() {
   useEffect(() => {
     load();
   }, [load]);
-  useEffect(() => {
-    if (open)
-      api
-        .get("/patients", { params: { limit: 50 } })
-        .then((r) => setPatients(r.data.data));
-  }, [open]);
   const save = async (e) => {
     e.preventDefault();
     const f = new FormData(e.currentTarget),
@@ -60,18 +52,6 @@ export function BillingPage() {
       load();
     } catch (e) {
       setError(e.response?.data?.message || "Unable to save billing record.");
-    }
-  };
-  const remove = async (id) => {
-    if (
-      await confirmDialog({
-        title: "Delete billing record",
-        message: "Delete this unpaid billing record?",
-        confirmLabel: "Delete",
-      })
-    ) {
-      await api.delete(`/billing/${id}`);
-      load();
     }
   };
   const form = edit
