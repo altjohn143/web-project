@@ -691,5 +691,19 @@ header {
 .billing-table th, .billing-table td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--line, #e5e1da); vertical-align: middle; }
 .billing-table th { color: var(--ink-muted, #6a655d); font-size: .72rem; letter-spacing: .08em; }
 .billing-table td .row-actions { justify-content: flex-start; }
+
+.billing-table td button {
+  border: 1px solid var(--sage-dark, #173d36);
+  border-radius: 999px;
+  background: var(--sage-dark, #173d36);
+  color: #fff;
+  padding: 8px 13px;
+  font: 700 .7rem/1 "DM Sans", sans-serif;
+  letter-spacing: .04em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.billing-table td button:hover { background: var(--sage, #287e74); }
 .status.unpaid { background: #fff1cf; color: #805a00; }
 .status.paid { background: #dbf5e4; color: #17633b; }
