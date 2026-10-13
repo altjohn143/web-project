@@ -101,7 +101,12 @@ export default function PatientAppointmentPage() {
             </div>
             <div className="form-row schedule-row">
               <label>Preferred date<small>Monday–Friday only</small><input name="date" type="date" min={today} value={form.date} onChange={update} required /></label>
-              <label>Preferred time<small>Clinic hours: 8:00 AM–5:00 PM</small><select name="time" value={form.time} onChange={update} required><option value="">Select a clinic time</option>{officeTimeSlots.map(slot => <option key={slot.value} value={slot.value}>{slot.label}</option>)}</select></label>
+              <fieldset className="time-slot-picker">
+                <legend>Preferred time <small>Clinic hours: 8:00 AM–5:00 PM</small></legend>
+                <div className="time-slot-grid" role="group" aria-label="Preferred appointment time">
+                  {officeTimeSlots.map(slot => <button key={slot.value} type="button" className={form.time === slot.value ? "time-slot selected" : "time-slot"} aria-pressed={form.time === slot.value} onClick={() => setForm({ ...form, time: slot.value })}>{slot.label}</button>)}
+                </div>
+              </fieldset>
               <label>What can we help you with?<small>We’ll assign the right practitioner automatically.</small><select name="careType" value={form.careType} onChange={update} required><option value="">Select a type of care</option>{careOptions.map(option => <option key={option} value={option}>{option}</option>)}</select></label>
             </div>
             {error && <div className="form-error">{error}</div>}<button className="primary full" disabled={busy}>{busy ? "Sending code..." : "Send verification code"}</button><p className="form-note">We’ll email a verification code before your request is submitted.</p>

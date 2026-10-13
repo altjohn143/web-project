@@ -32,9 +32,10 @@
   padding: 0 !important;
   border: 0 !important;
   border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
+  background: linear-gradient(90deg, rgba(222, 244, 244, 0.62), rgba(206, 233, 232, 0.5)) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.42), 0 10px 26px rgba(7, 63, 121, 0.08) !important;
+  backdrop-filter: blur(18px) saturate(1.12) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.12) !important;
   transform: none;
 }
 
@@ -184,8 +185,8 @@
 .public-page:has(.public-hero) .public-nav {
   border: 0 !important;
   border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
+  background: linear-gradient(90deg, rgba(222, 244, 244, 0.62), rgba(206, 233, 232, 0.5)) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.42), 0 10px 26px rgba(7, 63, 121, 0.08) !important;
 }
 
 .public-page:has(.public-hero) .public-hero {
@@ -590,9 +591,8 @@
 
 /* Compact public appointment request screen. */
 .appointment-page {
-  height: 100vh;
-  min-height: 600px;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow-x: clip;
   padding: 20px clamp(34px, 6vw, 96px);
   background:
     radial-gradient(circle at 28% 18%, rgba(255, 255, 255, 0.56), transparent 24rem),
@@ -641,8 +641,7 @@
 
 .appointment-page .appointment-layout {
   max-width: 1520px;
-  height: calc(100vh - 70px);
-  min-height: 500px;
+  min-height: calc(100vh - 70px);
   margin: 10px auto 0;
   grid-template-columns: minmax(360px, 0.78fr) minmax(610px, 0.92fr);
   gap: clamp(28px, 5vw, 86px);
@@ -713,9 +712,9 @@
 }
 
 .appointment-page .patient-form {
-  max-height: calc(100vh - 86px);
+  max-height: none;
   padding: clamp(18px, 2vw, 26px);
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid rgba(15, 111, 116, 0.26);
   border-radius: 28px;
   background: rgba(246, 255, 254, 0.88);
@@ -787,6 +786,64 @@
   margin-top: 8px;
 }
 
+.appointment-page .time-slot-picker {
+  min-width: 0;
+  margin: 8px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.appointment-page .time-slot-picker legend {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 0;
+  color: #052f38;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.appointment-page .time-slot-picker legend small {
+  color: #0f6f74;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.appointment-page .time-slot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.appointment-page .time-slot {
+  min-width: 0;
+  min-height: 36px;
+  border: 1px solid rgba(15, 111, 116, 0.28);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.74);
+  color: #075b64;
+  cursor: pointer;
+  font: 700 12px/1 "DM Sans";
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.appointment-page .time-slot:hover,
+.appointment-page .time-slot:focus-visible {
+  border-color: #078985;
+  background: #e3f7f6;
+  box-shadow: 0 5px 12px rgba(7, 137, 133, 0.16);
+  outline: none;
+  transform: translateY(-2px);
+}
+
+.appointment-page .time-slot.selected {
+  border-color: transparent;
+  background: linear-gradient(135deg, #0784d8, #0aa69c);
+  box-shadow: 0 6px 14px rgba(7, 132, 216, 0.25);
+  color: #fff;
+}
+
 .appointment-page .patient-form .full {
   min-height: 42px;
   margin-top: 12px;
@@ -842,5 +899,9 @@
 @media (max-width: 720px) {
   .appointment-page .patient-form .name-row {
     grid-template-columns: 1fr;
+  }
+
+  .appointment-page .time-slot-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
