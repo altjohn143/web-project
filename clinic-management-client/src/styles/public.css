@@ -951,6 +951,27 @@
 .compact-workflow-modal .form-row { gap: 10px; }
 .compact-workflow-modal .full { margin-top: 10px; }
 
+/* Keep the landing hero visually connected to its navigation.  The earlier
+   bottom-pinned portrait left a large empty band above the image on desktops. */
+.public-page:has(.public-hero) .public-hero-copy {
+  padding-top: clamp(76px, 8vh, 98px);
+}
+
+.public-page:has(.public-hero) .public-doctor {
+  top: 122px;
+  right: clamp(120px, 11vw, 220px);
+  bottom: auto;
+  width: min(760px, 52vw);
+}
+
+@media (max-width: 900px) {
+  .public-page:has(.public-hero) .public-doctor {
+    top: 150px;
+    right: -85px;
+    width: min(600px, 76vw);
+  }
+}
+
 .time-picker-modal .eyebrow {
   margin: 0 0 5px;
   color: #0f6f74;
