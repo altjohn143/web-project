@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Navigate, NavLink, Route, Routes } from "react-router-dom";
-import { Activity, Bell, CalendarDays, ClipboardPlus, DollarSign, FlaskConical, HeartPulse, LayoutDashboard, LogOut, Menu, Search, Settings, Stethoscope, UserRound, Users, X } from "lucide-react";
+import { Activity, Bell, CalendarDays, ChevronLeft, ChevronRight, ClipboardPlus, DollarSign, FlaskConical, HeartPulse, LayoutDashboard, LogOut, Menu, Search, Settings, Stethoscope, UserRound, Users, X } from "lucide-react";
 import { useAuth } from "../AuthContext";
 import api from "../api";
 import { initials } from "../utils/clinic";
@@ -38,6 +38,7 @@ export default function ClinicShell() {
     laboratory: "Laboratory staff",
   };
   const [mobile, setMobile] = useState(false),
+    [sidebarCollapsed, setSidebarCollapsed] = useState(false),
     [query, setQuery] = useState(""),
     [items, setItems] = useState([]),
     [loading, setLoading] = useState(true),
@@ -47,7 +48,9 @@ export default function ClinicShell() {
     [modal, setModal] = useState(false),
     [editing, setEditing] = useState(null),
     [error, setError] = useState(""),
-    [unreadNotifications, setUnreadNotifications] = useState(0);
+    [unreadNotifications, setUnreadNotifications] = useState(0),
+    [notifications, setNotifications] = useState([]),
+    [notificationOpen, setNotificationOpen] = useState(false);
   const load = useCallback(async () => {
     if (!appointmentAccess) {
       setItems([]);
@@ -80,6 +83,7 @@ export default function ClinicShell() {
   const loadNotifications = useCallback(async () => {
     try {
       const { data } = await api.get("/notifications");
+      setNotifications(data.slice(0, 6));
       setUnreadNotifications(data.filter(item => !item.readBy?.includes(user.id)).length);
     } catch {
       // Notifications must not prevent the rest of the workspace from loading.
@@ -92,6 +96,14 @@ export default function ClinicShell() {
     document.addEventListener("visibilitychange", refreshOnFocus);
     return () => { clearInterval(timer); document.removeEventListener("visibilitychange", refreshOnFocus); };
   }, [loadNotifications]);
+  const markNotificationRead = async id => {
+    try {
+      await api.patch(`/notifications/${id}/read`);
+      await loadNotifications();
+    } catch {
+      // Leaving an item unread is safer than interrupting the user's work.
+    }
+  };
   const save = async (form) => {
     editing
       ? await api.put(`/appointments/${editing._id}`, form)
@@ -130,7 +142,7 @@ export default function ClinicShell() {
   };
   return (
     <div className={`app-shell role-${user.role}`}>
-      <aside className={mobile ? "sidebar open" : "sidebar"}>
+      <aside className={`sidebar${mobile ? " open" : ""}${sidebarCollapsed ? " collapsed" : ""}`}>
         <div className="brand">
           <span className="brand-mark">
             <HeartPulse />
@@ -141,6 +153,9 @@ export default function ClinicShell() {
         </div>
         <button className="close-menu" onClick={() => setMobile(false)}>
           <X />
+        </button>
+        <button className="sidebar-toggle" type="button" onClick={() => setSidebarCollapsed(current => !current)} aria-label={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"}>
+          {sidebarCollapsed ? <ChevronRight /> : <ChevronLeft />}
         </button>
         <nav>
           <p>
@@ -154,7 +169,7 @@ export default function ClinicShell() {
                     ? "Laboratory workspace"
                     : "Clinical workspace"}
           </p>
-          <NavLink to="/dashboard">
+          <NavLink to="/dashboard" data-tooltip="Dashboard" aria-label="Dashboard">
             <LayoutDashboard />{" "}
             {isSuper
               ? "System overview"
@@ -162,61 +177,58 @@ export default function ClinicShell() {
                 ? "Clinic overview"
                 : "My dashboard"}
           </NavLink>
-          {appointmentAccess && <NavLink to="/appointments">
+          {appointmentAccess && <NavLink to="/appointments" data-tooltip="Appointments" aria-label="Appointments">
             <CalendarDays /> {role === "doctor" ? "My appointments" : "Appointments"}{" "}
             <b>{total}</b>
           </NavLink>}
-          {queueAccess && <NavLink to="/queue">
+          {queueAccess && <NavLink to="/queue" data-tooltip="Live queue" aria-label="Live queue">
             <Activity /> Live queue
           </NavLink>}
-          <NavLink to="/patients">
+          <NavLink to="/patients" data-tooltip="Patients" aria-label="Patients">
             <Users /> Patients
           </NavLink>
           {isAdmin && (
-            <NavLink to="/doctors">
+            <NavLink to="/doctors" data-tooltip="Doctors" aria-label="Doctors">
               <Stethoscope /> Doctors
             </NavLink>
           )}
           {staffAccess && (
-            <NavLink to="/staff">
+            <NavLink to="/staff" data-tooltip="Staff accounts" aria-label="Staff accounts">
               <Users /> Staff accounts
             </NavLink>
           )}
-          {recordAccess && <NavLink to="/records">
+          {recordAccess && <NavLink to="/records" data-tooltip="Medical records" aria-label="Medical records">
             <ClipboardPlus /> Medical records
           </NavLink>}
-          {billingAccess && <NavLink to="/billing">
+          {billingAccess && <NavLink to="/billing" data-tooltip="Billing" aria-label="Billing">
             <DollarSign /> Billing
           </NavLink>}
-          {laboratoryAccess && <NavLink to="/laboratory">
+          {laboratoryAccess && <NavLink to="/laboratory" data-tooltip="Laboratory" aria-label="Laboratory">
             <FlaskConical /> Laboratory
           </NavLink>}
-          {prescriptionAccess && <NavLink to="/prescriptions">
+          {prescriptionAccess && <NavLink to="/prescriptions" data-tooltip="Prescriptions" aria-label="Prescriptions">
             <ClipboardPlus /> Prescriptions
           </NavLink>}
-          {referralAccess && <NavLink to="/referrals">
+          {referralAccess && <NavLink to="/referrals" data-tooltip="Referrals" aria-label="Referrals">
             <Users /> Referrals
           </NavLink>}
-          {inventoryAccess && <NavLink to="/inventory">
+          {inventoryAccess && <NavLink to="/inventory" data-tooltip="Inventory" aria-label="Inventory">
             <ClipboardPlus /> Inventory
           </NavLink>}
-          {documentAccess && <NavLink to="/documents">
+          {documentAccess && <NavLink to="/documents" data-tooltip="Documents" aria-label="Documents">
             <ClipboardPlus /> Documents
           </NavLink>}
           <p>Account</p>
-          <NavLink to="/notifications">
-            <Activity /> Notifications
-          </NavLink>
-          <NavLink to="/profile">
+          <NavLink to="/profile" data-tooltip="Profile" aria-label="Profile">
             <UserRound /> Profile
           </NavLink>
           {isAdmin && (
-            <NavLink to="/settings">
+            <NavLink to="/settings" data-tooltip="Settings" aria-label="Settings">
               <Settings /> Settings
             </NavLink>
           )}
         </nav>
-        <button className="logout" onClick={logout}>
+        <button className="logout" data-tooltip="Sign out" onClick={logout}>
           <LogOut /> Sign out
         </button>
       </aside>
@@ -241,10 +253,16 @@ export default function ClinicShell() {
             />
           </div>
           <div className="role-badge">{roleLabels[role] || role}</div>
-          <NavLink to="/notifications" className="notification-bell" aria-label={`Notifications${unreadNotifications ? `, ${unreadNotifications} unread` : ""}`}>
-            <Bell />
-            {unreadNotifications > 0 && <b>{unreadNotifications > 9 ? "9+" : unreadNotifications}</b>}
-          </NavLink>
+          <div className="notification-menu">
+            <button type="button" className="notification-bell" aria-expanded={notificationOpen} aria-label={`Notifications${unreadNotifications ? `, ${unreadNotifications} unread` : ""}`} onClick={() => setNotificationOpen(current => !current)}>
+              <Bell />
+              {unreadNotifications > 0 && <b>{unreadNotifications > 9 ? "9+" : unreadNotifications}</b>}
+            </button>
+            {notificationOpen && <div className="notification-dropdown" role="dialog" aria-label="Notifications">
+              <div className="notification-dropdown-head"><b>Notifications</b><span>{unreadNotifications ? `${unreadNotifications} unread` : "All caught up"}</span></div>
+              <div className="notification-dropdown-list">{notifications.length ? notifications.map(item => { const unread = !item.readBy?.includes(user.id); return <button type="button" key={item._id} className={unread ? "unread" : ""} onClick={() => unread && markNotificationRead(item._id)}><strong>{item.title}</strong><span>{item.message}</span></button>; }) : <p>No notifications yet.</p>}</div>
+            </div>}
+          </div>
           <NavLink to="/profile" className="profile-chip">
             <div>{initials(user.name)}</div>
             <span>

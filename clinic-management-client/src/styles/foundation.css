@@ -42,6 +42,25 @@ body {
   z-index: 20;
 }
 
+.sidebar-toggle {
+  position: absolute;
+  top: 30px;
+  right: -15px;
+  z-index: 2;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--sage-dark);
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(36, 49, 45, .12);
+}
+
+.sidebar-toggle svg { width: 17px; }
+
 .brand {
   font-family: "Playfair Display";
   font-size: 21px;
@@ -306,6 +325,54 @@ header {
   background: #c85048;
   color: #fff;
   font: 800 10px/1 "DM Sans", sans-serif;
+}
+
+.notification-menu { position: relative; }
+
+.notification-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 30;
+  width: min(360px, calc(100vw - 32px));
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+  box-shadow: 0 16px 38px rgba(36, 49, 45, .18);
+}
+
+.notification-dropdown-head { display: flex; justify-content: space-between; gap: 12px; padding: 15px 16px; border-bottom: 1px solid var(--line); }
+.notification-dropdown-head b { font-size: 14px; }
+.notification-dropdown-head span { color: var(--muted); font-size: 12px; }
+.notification-dropdown-list { max-height: 360px; overflow-y: auto; }
+.notification-dropdown-list > button { display: grid; width: 100%; gap: 4px; padding: 13px 16px; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; text-align: left; }
+.notification-dropdown-list > button:hover { background: #f3f7f3; }
+.notification-dropdown-list > button.unread { background: #edf5ef; }
+.notification-dropdown-list strong { font-size: 13px; }
+.notification-dropdown-list span, .notification-dropdown-list p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.notification-dropdown-list > p { padding: 22px 16px; text-align: center; }
+
+.sidebar.collapsed { width: 84px; padding-right: 13px; padding-left: 13px; }
+.sidebar.collapsed ~ main { width: calc(100% - 84px); margin-left: 84px; }
+.sidebar.collapsed .brand { justify-content: center; margin-right: 0; margin-left: 0; }
+.sidebar.collapsed .brand > span:last-child, .sidebar.collapsed nav p { display: none; }
+.sidebar.collapsed nav { overflow: visible; padding-right: 0; }
+.sidebar.collapsed nav a, .sidebar.collapsed .logout { position: relative; justify-content: center; gap: 0; padding-right: 10px; padding-left: 10px; font-size: 0; overflow: visible; }
+.sidebar.collapsed nav a b { display: none; }
+.sidebar.collapsed nav a::after, .sidebar.collapsed .logout::after { position: absolute; left: calc(100% + 14px); z-index: 40; padding: 8px 10px; border-radius: 7px; background: #24312d; color: #fff; content: attr(data-tooltip); font: 600 12px/1 "DM Sans", sans-serif; opacity: 0; pointer-events: none; transform: translateX(-5px); transition: opacity .15s ease, transform .15s ease; white-space: nowrap; }
+.sidebar.collapsed nav a:hover::after, .sidebar.collapsed nav a:focus-visible::after, .sidebar.collapsed .logout:hover::after, .sidebar.collapsed .logout:focus-visible::after { opacity: 1; transform: translateX(0); }
+
+@media (max-width: 760px) {
+  .sidebar-toggle { display: none; }
+  .sidebar.collapsed { width: 260px; padding: 29px 22px; }
+  .sidebar.collapsed ~ main { width: 100%; margin-left: 0; }
+  .sidebar.collapsed .brand { justify-content: flex-start; margin-right: 8px; margin-left: 8px; }
+  .sidebar.collapsed .brand > span:last-child, .sidebar.collapsed nav p { display: block; }
+  .sidebar.collapsed nav { overflow-x: hidden; padding-right: 5px; }
+  .sidebar.collapsed nav a, .sidebar.collapsed .logout { justify-content: flex-start; gap: 12px; padding: 11px 13px; font-size: 14px; overflow: hidden; }
+  .sidebar.collapsed .logout { gap: 10px; }
+  .sidebar.collapsed nav a::after, .sidebar.collapsed .logout::after { display: none; }
 }
 
 .profile-chip > div {
