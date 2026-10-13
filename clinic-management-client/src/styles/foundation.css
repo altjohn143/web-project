@@ -45,7 +45,7 @@ body {
 .sidebar-toggle {
   position: absolute;
   top: 30px;
-  right: -15px;
+  right: 12px;
   z-index: 2;
   display: grid;
   width: 30px;
@@ -58,6 +58,8 @@ body {
   cursor: pointer;
   box-shadow: 0 3px 10px rgba(36, 49, 45, .12);
 }
+
+.sidebar.collapsed .sidebar-toggle { right: 9px; }
 
 .sidebar-toggle svg { width: 17px; }
 
