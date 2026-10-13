@@ -320,7 +320,7 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
       setBusy(false);
     }
   };
-  return (
+  return createPortal(
     <div className="modal-backdrop">
       <form className="modal appointment-modal" onSubmit={submit}>
         <button type="button" className="modal-x" onClick={onClose}>
@@ -479,6 +479,7 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
               : "Add pending appointment"}
         </button>
       </form>
-    </div>
+    </div>,
+    document.body,
   );
 }

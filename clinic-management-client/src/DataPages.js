@@ -400,7 +400,7 @@ function DataModal({ type, item, blank, onClose, onSave }) {
       setError(e.response?.data?.errors?.[0]?.msg || "Unable to save record.");
     }
   };
-  return (
+  return createPortal(
     <div className="modal-backdrop">
       <form className="modal" onSubmit={submit}>
         <button type="button" className="modal-x" onClick={onClose}>
@@ -478,6 +478,7 @@ function DataModal({ type, item, blank, onClose, onSave }) {
         {error && <div className="form-error">{error}</div>}
         <button className="primary full">Save record</button>
       </form>
-    </div>
+    </div>,
+    document.body,
   );
 }

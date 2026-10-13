@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { NavLink } from "react-router-dom";
 import { Archive, ArchiveRestore, Pencil, Stethoscope, Users, X } from "lucide-react";
 import api from "../../api";
@@ -231,7 +232,7 @@ function AccountModal({ role, roles, item, onClose, onCreated }) {
       setBusy(false);
     }
   };
-  return (
+  return createPortal(
     <div className="modal-backdrop">
       <form className="modal" onSubmit={submit}>
         <button type="button" className="modal-x" onClick={onClose}>
@@ -312,7 +313,8 @@ function AccountModal({ role, roles, item, onClose, onCreated }) {
           {busy ? "Saving..." : item ? "Save account changes" : `Create ${roleName(role || form.role)} account`}
         </button>
       </form>
-    </div>
+    </div>,
+    document.body,
   );
 }
 export function Module({ title, text, icon }) {
