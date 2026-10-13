@@ -519,7 +519,9 @@ button:disabled {
 
 .modal-backdrop {
   /* Portaled dialogs must sit above the sticky application header on every page. */
-  z-index: 2147483000;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483647 !important;
   display: grid;
   place-items: start center;
   overflow-y: auto;
