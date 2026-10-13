@@ -20,6 +20,7 @@ export default function ClinicShell() {
   const isSuper = role === "superadmin";
   const appointmentAccess = ["receptionist", "superadmin"].includes(role);
   const canSchedule = role === "receptionist";
+  const patientAccess = role !== "nurse";
   const recordAccess = ["superadmin", "doctor", "nurse"].includes(role);
   const billingAccess = ["superadmin", "billing"].includes(role);
   const staffAccess = role === "superadmin";
@@ -47,17 +48,16 @@ export default function ClinicShell() {
     [unreadNotifications, setUnreadNotifications] = useState(0),
     [notifications, setNotifications] = useState([]),
     [notificationOpen, setNotificationOpen] = useState(false);
-  const load = useCallback(async () => {
+  const load = useCallback(async (silent = false) => {
     if (!appointmentAccess) {
       setItems([]);
       setTotal(0);
       setPages(1);
-      setLoading(false);
+      if (!silent) setLoading(false);
       return;
     }
     try {
-      setLoading(true);
-      setError("");
+      if (!silent) { setLoading(true); setError(""); }
       const { data } = await api.get("/appointments", {
         params: { page, limit: 6, q: query },
       });
@@ -65,18 +65,16 @@ export default function ClinicShell() {
       setPages(data.pages || 1);
       setTotal(data.total);
     } catch (e) {
-      setError(
-        "API unavailable. Start the server and try loading the records again.",
-      );
+      if (!silent) setError("API unavailable. Start the server and try loading the records again.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [page, query, appointmentAccess]);
   useEffect(() => {
     const timer = setTimeout(load, 250);
     return () => clearTimeout(timer);
   }, [load]);
-  useSilentRefresh(load);
+  useSilentRefresh(() => load(true));
   const loadNotifications = useCallback(async () => {
     try {
       const { data } = await api.get("/notifications");
@@ -178,9 +176,9 @@ export default function ClinicShell() {
           {queueAccess && <NavLink to="/queue" data-tooltip={role === "nurse" ? "Vitals intake" : role === "doctor" ? "My assigned appointments" : "Live queue"} aria-label="Live queue">
             <Activity /> {role === "nurse" ? "Vitals intake" : role === "doctor" ? "My assigned appointments" : "Live queue"}
           </NavLink>}
-          <NavLink to="/patients" data-tooltip="Patient Records" aria-label="Patient Records">
+          {patientAccess && <NavLink to="/patients" data-tooltip="Patient Records" aria-label="Patient Records">
             <Users /> Patient Records
-          </NavLink>
+          </NavLink>}
           {staffAccess && (
             <NavLink to="/staff" data-tooltip="Staff accounts" aria-label="Staff accounts">
               <Users /> Staff accounts
@@ -302,10 +300,10 @@ export default function ClinicShell() {
             }
           />}
           <Route path="/profile" element={<ProfilePage />} />
-          <Route
+          {patientAccess && <Route
             path="/patients"
             element={<PatientsPage />}
-          />
+          />}
           {staffAccess && <Route path="/staff" element={<StaffAccounts user={user} />} />}
           {recordAccess && <Route
             path="/records"

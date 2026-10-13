@@ -260,6 +260,32 @@
     65px 78px minmax(175px, auto);
 }
 
+/* Keep appointment information in stable columns on wide receptionist screens. */
+.appointments-card.full-card .appointment:has(.workflow-actions) {
+  grid-template-columns: 48px minmax(260px, 1.35fr) minmax(210px, 1fr) 84px max-content minmax(260px, auto);
+  gap: 20px;
+}
+
+.appointments-card.full-card .appointment .patient,
+.appointments-card.full-card .appointment .doctor,
+.appointments-card.full-card .appointment .time {
+  min-width: 0;
+  justify-content: center;
+}
+
+.appointments-card.full-card .workflow-actions {
+  justify-self: end;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+@media (max-width: 800px) {
+  .appointments-card.full-card .appointment:has(.workflow-actions) {
+    grid-template-columns: 40px minmax(0, 1fr) minmax(150px, auto);
+    gap: 12px;
+  }
+}
+
 @media (max-width: 760px) {
   .workflow-actions .appointment-view span {
     display: none;

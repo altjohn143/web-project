@@ -4,6 +4,7 @@ import { Bell, ClipboardCheck, HeartPulse, Printer, RefreshCw, Stethoscope, Tras
 import api from './api';
 import { useAuth } from './AuthContext';
 import { noticeDialog, textDialog } from './components/common/AppDialogs';
+import useSilentRefresh from './hooks/useSilentRefresh';
 
 const name = patient => patient ? `${patient.firstName} ${patient.lastName}` : 'Patient';
 const date = value => value ? new Date(value).toLocaleString() : '—';
@@ -15,7 +16,8 @@ export function QueuePage() {
   const { user } = useAuth(), canCheckIn = user.role==='receptionist', nurse = user.role==='nurse', doctor=user.role==='doctor';
   const [queue,setQueue]=useState([]),[appointments,setAppointments]=useState([]),[vitals,setVitals]=useState(null),[error,setError]=useState('');
   const load=useCallback(async()=>{try{const calls=[api.get('/workflows/queue')];if(canCheckIn)calls.push(api.get('/appointments',{params:{limit:50}}));const [q,a]=await Promise.all(calls);setQueue(q.data);setAppointments(a?.data?.data||[]);setError('');}catch(e){setError(e.response?.data?.message||'Unable to load the live queue.');}},[canCheckIn]);
-  useEffect(()=>{load();const timer=setInterval(load,5000);const refreshOnFocus=()=>document.visibilityState==='visible'&&load();document.addEventListener('visibilitychange',refreshOnFocus);return()=>{clearInterval(timer);document.removeEventListener('visibilitychange',refreshOnFocus)}},[load]);
+  useEffect(()=>{load()},[load]);
+  useSilentRefresh(load);
   const checkIn=async id=>{try{await api.post(`/workflows/check-in/${id}`);load()}catch(e){if(e.response?.status===409){setAppointments(current=>current.filter(appointment=>String(appointment._id)!==String(id)));load();return;}setError(e.response?.data?.message||'Unable to check in patient.')}};
   const markNoShow=async id=>{try{await api.patch(`/appointments/${id}/no-show`);load()}catch(e){setError(e.response?.data?.message||'Unable to mark the appointment as no-show.')}};
   const status=async(id,value)=>{try{await api.patch(`/workflows/queue/${id}/status`,{status:value});load()}catch(e){setError(e.response?.data?.message||'Unable to update queue status.')}};
