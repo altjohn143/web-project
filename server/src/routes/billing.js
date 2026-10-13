@@ -5,8 +5,8 @@ const User = require('../models/User');
 const auth = require('../middleware/auth');
 
 router.use(auth);
-const allowed = ['admin', 'billing'];
-const readAllowed = ['superadmin', 'admin', 'billing'];
+const allowed = ['billing'];
+const readAllowed = ['superadmin', 'billing'];
 const access = async (req, res, next) => {
   const user = await User.findById(req.user.id).select('role');
   if (!user || !allowed.includes(user.role)) return res.status(403).json({ message: 'Billing access required' });

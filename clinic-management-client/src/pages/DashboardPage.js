@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Activity, CalendarDays, ClipboardPlus, Clock3, DollarSign, FlaskConical, HeartPulse, Stethoscope, Users } from "lucide-react";
+import { Activity, CalendarDays, ClipboardPlus, Clock3, DollarSign, HeartPulse, Stethoscope, Users } from "lucide-react";
 import api from "../api";
 import { AppointmentList } from "../features/appointments/AppointmentComponents";
 
@@ -16,22 +16,21 @@ export default function Dashboard({ user, items, onAdd, loading }) {
   useEffect(() => {
     api.get("/dashboard").then(({ data }) => setMetrics(data));
   }, []);
-  if (["billing", "laboratory"].includes(user.role)) {
-    const billing = user.role === "billing";
+  if (user.role === "billing") {
     return (
       <div className={`page operations-dashboard role-${user.role}`}>
         <section className="welcome">
           <div className="welcome-copy">
-            <div className="eyebrow"><span>01</span>{billing ? "Financial operations" : "Diagnostic operations"}</div>
-            <h1>{billing ? "Billing," : "Laboratory,"}<br/><em>in focus.</em></h1>
-            <p>{billing ? "Manage invoices, payment status, and patient billing records." : "Manage test requests, results, and patient laboratory records."}</p>
+            <div className="eyebrow"><span>01</span>Financial operations</div>
+            <h1>Billing,<br/><em>in focus.</em></h1>
+            <p>Manage invoices, payment status, and patient billing records.</p>
           </div>
-          <div className="welcome-orbit">{billing ? <DollarSign /> : <FlaskConical />}</div>
-          <NavLink className="primary" to={billing ? "/billing" : "/laboratory"}>Open workspace <span>-&gt;</span></NavLink>
+          <div className="welcome-orbit"><DollarSign /></div>
+          <NavLink className="primary" to="/billing">Open workspace <span>-&gt;</span></NavLink>
         </section>
         <Ticker />
         <section className="stats">
-          <article><div className="stat-icon">{billing ? <DollarSign /> : <FlaskConical />}</div><span>{billing ? "Invoices" : "Laboratory records"}</span><strong>{billing ? metrics.invoices || 0 : metrics.laboratory || 0}</strong><small>Records</small></article>
+          <article><div className="stat-icon"><DollarSign /></div><span>Invoices</span><strong>{metrics.invoices || 0}</strong><small>Records</small></article>
           <article><div className="stat-icon"><Users /></div><span>Registered patients</span><strong>{metrics.patients}</strong><small>Patient directory</small></article>
         </section>
       </div>
@@ -44,7 +43,7 @@ export default function Dashboard({ user, items, onAdd, loading }) {
     ? items.filter((appointment) => appointment.doctor === user.name)
     : items;
   return (
-    <div className={`page ${doctor ? "doctor-dashboard" : "admin-dashboard"}`}>
+    <div className={`page ${doctor ? "doctor-dashboard" : "staff-dashboard"}`}>
       <section className="welcome">
         <div className="welcome-copy">
           <div className="eyebrow">

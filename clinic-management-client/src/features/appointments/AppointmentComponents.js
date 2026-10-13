@@ -382,6 +382,7 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
               type="date"
               value={form.birthDate}
               onChange={(e) => change("birthDate", e.target.value)}
+              required
             />
           </label>
         </div>
@@ -391,6 +392,7 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
             <select
               value={form.sex}
               onChange={(e) => change("sex", e.target.value)}
+              required
             >
               <option value="">Select</option>
               {["Female", "Male", "Other"].map((s) => (
@@ -403,6 +405,7 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
             <input
               value={form.address}
               onChange={(e) => change("address", e.target.value)}
+              maxLength="300"
             />
           </label>
         </div>

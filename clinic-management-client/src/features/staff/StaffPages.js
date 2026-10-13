@@ -7,6 +7,7 @@ import PasswordInput from "../../components/common/PasswordInput";
 import { PatientsPage, RecordsPage } from "../../DataPages";
 import { medicalSpecialties, strongPassword } from "../../utils/clinic";
 import { confirmDialog, noticeDialog } from "../../components/common/AppDialogs";
+import useSilentRefresh from "../../hooks/useSilentRefresh";
 
 export function Doctors({ user }) {
   const [doctors, setDoctors] = useState([]),
@@ -27,6 +28,7 @@ export function Doctors({ user }) {
   useEffect(() => {
     load();
   }, [load]);
+  useSilentRefresh(load);
   return (
     <div className="page">
       <section className="subhero">
@@ -116,6 +118,7 @@ export function StaffAccounts({ user }) {
   useEffect(() => {
     load();
   }, [load]);
+  useSilentRefresh(load);
   return (
     <div className="page">
       <section className="subhero">
@@ -134,7 +137,7 @@ export function StaffAccounts({ user }) {
       {error && <div className="form-error api-error">{error}</div>}
       <section className="account-controls" aria-label="Staff account controls">
         <label className="account-search"><Search /><input value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} placeholder="Search name or email" /></label>
-        <select value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }} aria-label="Filter by role"><option value="all">All roles</option>{(user.role === "superadmin" ? ["admin", "receptionist", "doctor", "nurse", "billing", "laboratory"] : ["receptionist", "doctor", "nurse", "billing", "laboratory"]).map(role => <option key={role} value={role}>{roleName(role)}</option>)}</select>
+        <select value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }} aria-label="Filter by role"><option value="all">All roles</option>{["receptionist", "doctor", "nurse", "billing"].map(role => <option key={role} value={role}>{roleName(role)}</option>)}</select>
         <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} aria-label="Filter by status"><option value="all">All statuses</option><option value="active">Active</option><option value="archived">Archived</option></select>
         <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort accounts"><option value="createdAt">Date created</option><option value="name">Name</option><option value="role">Role</option></select>
         <button className="secondary account-sort" type="button" onClick={() => setOrder(order === "asc" ? "desc" : "asc")}>{order === "asc" ? "Ascending" : "Descending"}</button>
@@ -169,9 +172,7 @@ export function StaffAccounts({ user }) {
       <div className="pagination account-pagination"><button disabled={page <= 1} onClick={() => setPage(page - 1)}><ChevronLeft /> Previous</button><span>Page {page} of {pages}</span><button disabled={page >= pages} onClick={() => setPage(page + 1)}>Next <ChevronRight /></button></div>
       {open && (
         <AccountModal
-          roles={user.role === "superadmin"
-            ? ["admin", "receptionist", "doctor", "nurse", "billing", "laboratory"]
-            : ["receptionist", "doctor", "nurse", "billing", "laboratory"]}
+          roles={["receptionist", "doctor", "nurse", "billing"]}
           item={editing}
           onClose={() => setOpen(false)}
           onCreated={() => {
@@ -185,7 +186,7 @@ export function StaffAccounts({ user }) {
 }
 function AccountActions({ member, user, onEdit, onChanged }) {
   if (!user) return null;
-  const canManage = user.role === "superadmin" ? member.role !== "superadmin" : !["superadmin", "admin"].includes(member.role);
+  const canManage = user.role === "superadmin" && member.role !== "superadmin";
   if (!canManage) return null;
   const toggleArchive = async () => {
     const action = member.isActive === false ? "restore" : "archive";
@@ -200,12 +201,10 @@ function AccountActions({ member, user, onEdit, onChanged }) {
   </div>;
 }
 const roleName = (role) => ({
-  admin: "Administrator",
   receptionist: "Receptionist",
   doctor: "Doctor",
   nurse: "Nurse",
   billing: "Billing / Cashier",
-  laboratory: "Laboratory Staff",
 }[role] || role);
 
 function AccountModal({ role, roles, item, onClose, onCreated }) {

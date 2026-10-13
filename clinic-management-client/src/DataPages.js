@@ -13,6 +13,7 @@ import {
 import api from "./api";
 import { useAuth } from "./AuthContext";
 import { confirmDialog } from "./components/common/AppDialogs";
+import useSilentRefresh from "./hooks/useSilentRefresh";
 
 const patientBlank = {
   firstName: "",
@@ -60,9 +61,9 @@ function CrudPage({ type, title, icon, blank }) {
   const { user } = useAuth();
   const canWrite =
     type === "patients"
-      ? ["admin", "receptionist"].includes(user.role)
-      : ["admin", "doctor"].includes(user.role);
-  const canDelete = user.role === "admin";
+      ? user.role === "receptionist"
+      : user.role === "doctor";
+  const canDelete = user.role === "receptionist";
   const [items, setItems] = useState([]),
     [page, setPage] = useState(1),
     [pages, setPages] = useState(1),
@@ -88,6 +89,7 @@ function CrudPage({ type, title, icon, blank }) {
   useEffect(() => {
     load();
   }, [load]);
+  useSilentRefresh(load);
   const remove = async (id) => {
     if (await confirmDialog({ title: "Delete record", message: "Delete this record? This action cannot be undone.", confirmLabel: "Delete" })) {
       await api.delete(`/${type}/${id}`);

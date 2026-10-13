@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Navigate, NavLink, Route, Routes } from "react-router-dom";
-import { Activity, Bell, CalendarDays, ChevronLeft, ChevronRight, ClipboardPlus, DollarSign, FlaskConical, HeartPulse, LayoutDashboard, LogOut, Menu, Search, Settings, Stethoscope, UserRound, Users, X } from "lucide-react";
+import { Activity, Bell, CalendarDays, ChevronLeft, ChevronRight, ClipboardPlus, DollarSign, HeartPulse, LayoutDashboard, LogOut, Menu, Search, Settings, Stethoscope, UserRound, Users, X } from "lucide-react";
 import { useAuth } from "../AuthContext";
 import api from "../api";
 import { initials } from "../utils/clinic";
@@ -9,33 +9,30 @@ import ProfilePage from "../pages/ProfilePage";
 import SettingsPage from "../pages/SettingsPage";
 import { Appointments, AppointmentModal } from "../features/appointments/AppointmentComponents";
 import { Doctors, StaffAccounts } from "../features/staff/StaffPages";
-import { BillingPage, LaboratoryPage } from "../OperationsPages";
+import { BillingPage } from "../OperationsPages";
 import { DocumentsPage, NotificationsPage, PrescriptionsPage, QueuePage } from "../WorkflowPages";
 import { PatientsPage, RecordsPage } from "../DataPages";
 import { confirmDialog } from "../components/common/AppDialogs";
+import useSilentRefresh from "../hooks/useSilentRefresh";
 
 export default function ClinicShell() {
   const { user, logout } = useAuth();
   const role = user.role;
   const isSuper = role === "superadmin";
-  const isAdmin = role === "admin";
   const appointmentAccess = ["receptionist", "superadmin"].includes(role);
-  const canSchedule = ["admin", "receptionist"].includes(role);
-  const recordAccess = ["superadmin", "admin", "doctor", "nurse"].includes(role);
-  const billingAccess = ["superadmin", "admin", "billing"].includes(role);
-  const laboratoryAccess = ["superadmin", "admin", "doctor", "laboratory"].includes(role);
-  const staffAccess = ["superadmin", "admin"].includes(role);
-  const queueAccess = ["admin", "doctor", "nurse"].includes(role);
-  const prescriptionAccess = ["superadmin", "admin", "doctor"].includes(role);
-  const documentAccess = ["superadmin", "admin"].includes(role);
+  const canSchedule = role === "receptionist";
+  const recordAccess = ["superadmin", "doctor", "nurse"].includes(role);
+  const billingAccess = ["superadmin", "billing"].includes(role);
+  const staffAccess = role === "superadmin";
+  const queueAccess = ["doctor", "nurse"].includes(role);
+  const prescriptionAccess = ["superadmin", "doctor"].includes(role);
+  const documentAccess = role === "superadmin";
   const roleLabels = {
     superadmin: "Superadmin",
-    admin: "Administrator",
     receptionist: "Receptionist",
     doctor: "Doctor portal",
     nurse: "Nurse portal",
     billing: "Billing / Cashier",
-    laboratory: "Laboratory staff",
   };
   const [mobile, setMobile] = useState(false),
     [sidebarCollapsed, setSidebarCollapsed] = useState(false),
@@ -80,6 +77,7 @@ export default function ClinicShell() {
     const timer = setTimeout(load, 250);
     return () => clearTimeout(timer);
   }, [load]);
+  useSilentRefresh(load);
   const loadNotifications = useCallback(async () => {
     try {
       const { data } = await api.get("/notifications");
@@ -174,8 +172,6 @@ export default function ClinicShell() {
                 ? "Administration"
                 : role === "billing"
                   ? "Financial workspace"
-                  : role === "laboratory"
-                    ? "Laboratory workspace"
                     : "Clinical workspace"}
           </p>
           {!isSuper && <NavLink to="/dashboard" data-tooltip="Dashboard" aria-label="Dashboard">
@@ -211,9 +207,6 @@ export default function ClinicShell() {
           </NavLink>}
           {billingAccess && <NavLink to="/billing" data-tooltip="Billing" aria-label="Billing">
             <DollarSign /> Billing
-          </NavLink>}
-          {laboratoryAccess && <NavLink to="/laboratory" data-tooltip="Laboratory" aria-label="Laboratory">
-            <FlaskConical /> Laboratory
           </NavLink>}
           {prescriptionAccess && <NavLink to="/prescriptions" data-tooltip="Prescriptions" aria-label="Prescriptions">
             <ClipboardPlus /> Prescriptions
@@ -349,7 +342,6 @@ export default function ClinicShell() {
             }
           />}
           {billingAccess && <Route path="/billing" element={<BillingPage />} />}
-          {laboratoryAccess && <Route path="/laboratory" element={<LaboratoryPage />} />}
           {queueAccess && <Route path="/queue" element={<QueuePage />} />}
           {prescriptionAccess && <Route path="/prescriptions" element={<PrescriptionsPage />} />}
           {documentAccess && <Route path="/documents" element={<DocumentsPage />} />}

@@ -41,6 +41,7 @@ const rules = [
   body('email').optional({ checkFalsy: true }).isEmail().normalizeEmail(),
   body('birthDate').optional({ checkFalsy: true }).isISO8601().toDate(),
   body('sex').optional({ checkFalsy: true }).isIn(['Female', 'Male', 'Other']),
+  body('address').optional({ checkFalsy: true }).trim().isLength({ max: 300 }),
 ];
 const valid = (req, res, next) => {
   const errors = validationResult(req);
@@ -65,6 +66,7 @@ const otpRules = [
   }),
   body('birthDate').isISO8601().withMessage('Enter a valid birth date.').toDate(),
   body('sex').isIn(['Female', 'Male', 'Other']).withMessage('Select the patient’s sex.'),
+  body('address').trim().isLength({ min: 5, max: 300 }).withMessage('Enter the patient’s address.'),
 ];
 const otpRequestLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false, message: { message: 'Too many verification requests. Please try again in 15 minutes.' } });
 const otpVerifyLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, message: { message: 'Too many verification attempts. Please try again later.' } });
@@ -75,6 +77,7 @@ const appointmentRequest = (body, doctor) => ({
   phone: `${body.countryCode}${body.phone}`,
   birthDate: body.birthDate,
   sex: body.sex,
+  address: body.address,
   reason: body.careType,
   doctor: doctor.name,
   date: body.date,
@@ -198,7 +201,7 @@ router.get('/', async (req, res, next) => {
 router.patch('/:id/no-show', async (req, res, next) => {
   try {
     const user = await currentUser(req);
-    if (!['admin', 'superadmin', 'receptionist'].includes(user.role)) return res.status(403).json({ message: 'Reception access required' });
+    if (user.role !== 'receptionist') return res.status(403).json({ message: 'Reception access required' });
     const appointment = await Appointment.findById(req.params.id);
     if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
     if (!['Pending', 'Confirmed'].includes(appointment.status)) return res.status(422).json({ message: 'Only pending or confirmed appointments can be marked as no-show.' });
@@ -211,7 +214,7 @@ router.patch('/:id/no-show', async (req, res, next) => {
 router.post('/', rules, valid, async (req, res, next) => {
   try {
     const user = await currentUser(req);
-    if (!['admin', 'superadmin', 'receptionist'].includes(user.role)) return res.status(403).json({ message: 'Appointment scheduling access required' });
+    if (user.role !== 'receptionist') return res.status(403).json({ message: 'Appointment scheduling access required' });
     const appointment = await Appointment.create({ ...req.body, status: 'Pending', createdBy: req.user.id });
     res.status(201).json(appointment);
   } catch (error) { next(error); }
@@ -220,7 +223,7 @@ router.post('/', rules, valid, async (req, res, next) => {
 router.put('/:id', rules, valid, async (req, res, next) => {
   try {
     const user = await currentUser(req);
-    if (!['admin', 'superadmin', 'receptionist', 'doctor'].includes(user.role)) return res.status(403).json({ message: 'Appointment editing access denied' });
+    if (user.role !== 'receptionist') return res.status(403).json({ message: 'Appointment editing access denied' });
     const filter = { _id: req.params.id, ...(user.role === 'doctor' ? { doctor: user.name } : {}) };
     const current = await Appointment.findOne(filter).select('status');
     if (!current) return res.status(404).json({ message: 'Appointment not found or access denied' });
@@ -263,7 +266,7 @@ router.patch('/:id/status', async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
   try {
     const user = await currentUser(req);
-    if (!['admin', 'superadmin', 'receptionist'].includes(user.role)) return res.status(403).json({ message: 'Appointment deletion access denied' });
+    if (user.role !== 'receptionist') return res.status(403).json({ message: 'Appointment deletion access denied' });
     const filter = { _id: req.params.id, ...(user.role === 'doctor' ? { doctor: user.name } : {}) };
     const current = await Appointment.findOne(filter);
     if (!current) return res.status(404).json({ message: 'Appointment not found or access denied' });

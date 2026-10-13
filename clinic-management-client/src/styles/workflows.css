@@ -22,11 +22,6 @@
   color: #80672c;
 }
 
-.role-laboratory .role-badge {
-  border-color: #69548a;
-  color: #69548a;
-}
-
 @media (max-width: 900px) {
   .operations-row {
     grid-template-columns: 48px 1fr auto;
@@ -182,7 +177,6 @@
 }
 
 .queue-actions button,
-.inventory-grid button,
 .notification-list button {
   border: 1px solid var(--ink);
   background: transparent;
@@ -291,48 +285,6 @@
   color: var(--muted);
 }
 
-.inventory-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.inventory-grid article {
-  background: var(--paper);
-  border: 1px solid var(--line);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 13px;
-}
-
-.inventory-grid article > svg {
-  color: var(--sage);
-}
-
-.inventory-grid h3 {
-  margin: 5px 0;
-}
-
-.inventory-grid article span {
-  display: block;
-  color: #a14635;
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  margin-top: 4px;
-}
-
-.inventory-grid article > div:last-child {
-  display: flex;
-  gap: 7px;
-  margin-top: auto;
-}
-
-.inventory-alert {
-  box-shadow: inset 5px 0 #b65042;
-}
-
 .document-builder {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -392,8 +344,7 @@
 
 @media (max-width: 900px) {
   .queue-grid,
-  .document-list,
-  .inventory-grid {
+  .document-list {
     grid-template-columns: 1fr;
   }
   .document-builder {
@@ -604,7 +555,6 @@ button:disabled {
 .row-actions button,
 .pagination button,
 .queue-actions button,
-.inventory-grid button,
 .notification-list button,
 .clinic-document-head button {
   cursor: pointer;

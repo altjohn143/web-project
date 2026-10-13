@@ -110,7 +110,7 @@ function TimePickerModal({ value, onChange, onClose }) {
 
 const initialForm = {
   firstName: "", middleName: "", lastName: "", country: "PH", phone: "",
-  email: "", birthDate: "", sex: "", careType: "", date: "", time: "",
+  email: "", birthDate: "", sex: "", address: "", careType: "", date: "", time: "",
 };
 
 function isOfficeHours(value) {
@@ -187,6 +187,7 @@ export default function PatientAppointmentPage() {
               <label>Birth date<input name="birthDate" type="date" max={today} value={form.birthDate} onChange={update} required /></label>
               <label>Sex<select name="sex" value={form.sex} onChange={update} required><option value="">Select sex</option><option>Female</option><option>Male</option><option>Other</option></select></label>
             </div>
+            <label>Home address<input name="address" value={form.address} onChange={update} autoComplete="street-address" minLength="5" maxLength="300" required /></label>
             <div className="form-row schedule-row">
               <label>Preferred date<small>Monday–Friday only</small><input name="date" type="date" min={today} value={form.date} onChange={update} required /></label>
               <label>What can we help you with?<small>We’ll assign the right practitioner automatically.</small><select name="careType" value={form.careType} onChange={update} required><option value="">Select a type of care</option>{careOptions.map(option => <option key={option} value={option}>{option}</option>)}</select></label>
