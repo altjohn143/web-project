@@ -1,8 +1,261 @@
-import { useCallback, useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, Eye, Pencil, Trash2 } from 'lucide-react';
-import api from './api';
-import { useAuth } from './AuthContext';
-import { confirmDialog } from './components/common/AppDialogs';
+import { useCallback, useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Pencil } from "lucide-react";
+import api from "./api";
+import { useAuth } from "./AuthContext";
+import { confirmDialog } from "./components/common/AppDialogs";
 
-const emptyBill={patient:'',description:'',amount:'',amountPaid:0,dueDate:'',discountType:'None',paymentMethod:'Cash'};
-export function BillingPage(){const{user}=useAuth(),canWrite=user.role==='billing';const[items,setItems]=useState([]),[page,setPage]=useState(1),[pages,setPages]=useState(1),[q,setQ]=useState(''),[open,setOpen]=useState(false),[edit,setEdit]=useState(null),[patients,setPatients]=useState([]),[error,setError]=useState('');const load=useCallback(()=>api.get('/billing',{params:{page,limit:8,q}}).then(r=>{setItems(r.data.data);setPages(r.data.pages);setError('')}).catch(e=>setError(e.response?.data?.message||'Unable to load billing records.')),[page,q]);useEffect(()=>{load()},[load]);useEffect(()=>{if(open)api.get('/patients',{params:{limit:50}}).then(r=>setPatients(r.data.data))},[open]);const save=async e=>{e.preventDefault();const f=new FormData(e.currentTarget),body=Object.fromEntries(f);if(edit)body.amountPaid=Number(body.amountPaid);try{edit?await api.put(`/billing/${edit._id}`,body):await api.post('/billing',body);setOpen(false);setEdit(null);load()}catch(e){setError(e.response?.data?.message||'Unable to save billing record.')}};const remove=async id=>{if(await confirmDialog({title:'Delete billing record',message:'Delete this unpaid billing record?',confirmLabel:'Delete'})){await api.delete(`/billing/${id}`);load()}};const form=edit?{...edit,patient:edit.patient?._id,amount:edit.subtotal||edit.amount,dueDate:new Date(edit.dueDate).toISOString().slice(0,10)}:emptyBill;return <div className="page operations-page"><section className="subhero"><div className="eyebrow"><span>13</span>Clinic operations</div><h1>Billing,<br/><em>organized.</em></h1>{canWrite&&<button className="primary" onClick={()=>{setEdit(null);setOpen(true)}}>Add record ↗</button>}</section><div className="module-search"><input value={q} onChange={e=>{setQ(e.target.value);setPage(1)}} placeholder="Search billing..."/></div>{error&&<div className="form-error api-error">{error}</div>}<div className="data-table billing-table-wrap"><table className="billing-table"><thead><tr><th>Patient</th><th>Description</th><th>Discounted total</th><th>UNPAID</th><th>PAID</th><th>Actions</th></tr></thead><tbody>{items.map(x=><tr key={x._id}><td>{x.patient?`${x.patient.firstName} ${x.patient.lastName}`:'Deleted patient'}</td><td>{x.description}</td><td>₱{Number(x.amount).toFixed(2)}</td><td>{x.status==='Unpaid'&&<span className="status unpaid">UNPAID</span>}</td><td>{x.status==='Paid'&&<span className="status paid">PAID</span>}</td><td>{canWrite&&x.status==='Unpaid'&&<><button onClick={()=>{setEdit(x);setOpen(true)}}><Pencil/></button><button onClick={()=>remove(x._id)}><Trash2/></button></>}<button aria-label="View bill"><Eye/></button></td></tr>)}</tbody></table>{!items.length&&<div className="empty">No billing records found.</div>}<div className="pagination"><button disabled={page<=1} onClick={()=>setPage(page-1)}><ChevronLeft/> Previous</button><span>Page {page} of {pages}</span><button disabled={page>=pages} onClick={()=>setPage(page+1)}>Next <ChevronRight/></button></div></div>{open&&<div className="modal-backdrop"><form className="modal operation-modal" onSubmit={save}><h2>{edit?'Register payment':'Add billing record'}</h2><label>Patient<select name="patient" defaultValue={form.patient} disabled={Boolean(edit)} required><option value="">Select patient</option>{patients.map(p=><option key={p._id} value={p._id}>{p.firstName} {p.lastName}</option>)}</select></label><label>Description<input name="description" defaultValue={form.description} required/></label><label>Subtotal<input name="amount" type="number" min="0.01" step="0.01" defaultValue={form.amount} required/></label>{edit&&<label>Amount paid<input name="amountPaid" type="number" min="0.01" step="0.01" defaultValue={form.amountPaid} required/></label>}<label>Discount<select name="discountType" defaultValue={form.discountType}>{['None','Senior Citizen','PWD'].map(x=><option key={x}>{x}</option>)}</select></label><label>Payment method<select name="paymentMethod" defaultValue={form.paymentMethod}>{['Cash','Card','GCash','Bank transfer','Other'].map(x=><option key={x}>{x}</option>)}</select></label><label>Due date<input name="dueDate" type="date" defaultValue={form.dueDate} required/></label><label>Status<input value="Unpaid" disabled/></label><button className="primary full">Save record</button><button type="button" className="secondary full" onClick={()=>setOpen(false)}>Cancel</button></form></div>}</div>}
+const emptyBill = {
+  description: "",
+  amount: "",
+  amountPaid: 0,
+  dueDate: "",
+  discountType: "None",
+  paymentMethod: "Cash",
+};
+export function BillingPage() {
+  const { user } = useAuth(),
+    canWrite = user.role === "billing";
+  const [items, setItems] = useState([]),
+    [page, setPage] = useState(1),
+    [pages, setPages] = useState(1),
+    [q, setQ] = useState(""),
+    [open, setOpen] = useState(false),
+    [edit, setEdit] = useState(null),
+    [patients, setPatients] = useState([]),
+    [error, setError] = useState("");
+  const load = useCallback(
+    () =>
+      api
+        .get("/billing", { params: { page, limit: 8, q } })
+        .then((r) => {
+          setItems(r.data.data);
+          setPages(r.data.pages);
+          setError("");
+        })
+        .catch((e) =>
+          setError(e.response?.data?.message || "Unable to load billing records."),
+        ),
+    [page, q],
+  );
+  useEffect(() => {
+    load();
+  }, [load]);
+  useEffect(() => {
+    if (open)
+      api
+        .get("/patients", { params: { limit: 50 } })
+        .then((r) => setPatients(r.data.data));
+  }, [open]);
+  const save = async (e) => {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget),
+      body = Object.fromEntries(f);
+    if (edit) body.amountPaid = Number(body.amountPaid);
+    try {
+      edit
+        ? await api.put(`/billing/${edit._id}`, body)
+        : await api.post("/billing", body);
+      setOpen(false);
+      setEdit(null);
+      load();
+    } catch (e) {
+      setError(e.response?.data?.message || "Unable to save billing record.");
+    }
+  };
+  const remove = async (id) => {
+    if (
+      await confirmDialog({
+        title: "Delete billing record",
+        message: "Delete this unpaid billing record?",
+        confirmLabel: "Delete",
+      })
+    ) {
+      await api.delete(`/billing/${id}`);
+      load();
+    }
+  };
+  const form = edit
+    ? {
+        ...edit,
+        amount: edit.subtotal || edit.amount,
+        dueDate: new Date(edit.dueDate).toISOString().slice(0, 10),
+      }
+    : emptyBill;
+  return (
+    <div className="page operations-page">
+      <section className="subhero">
+        <div className="eyebrow">
+          <span>13</span>Clinic operations
+        </div>
+        <h1>
+          Billing,
+          <br />
+          <em>organized.</em>
+        </h1>
+        {canWrite && (
+          <button
+            className="primary"
+            onClick={() => {
+              setEdit(null);
+              setOpen(true);
+            }}
+          >
+            Add record ↗
+          </button>
+        )}
+      </section>
+      <div className="module-search">
+        <input
+          value={q}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setPage(1);
+          }}
+          placeholder="Search billing..."
+        />
+      </div>
+      {error && <div className="form-error api-error">{error}</div>}
+      <div className="data-table billing-table-wrap">
+        <table className="billing-table">
+          <thead>
+            <tr>
+              <th>Patient</th>
+              <th>Description</th>
+              <th>Discounted total</th>
+              <th>UNPAID</th>
+              <th>PAID</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((x) => (
+              <tr key={x._id}>
+                <td>
+                  {x.patient
+                    ? `${x.patient.firstName} ${x.patient.lastName}`
+                    : "Deleted patient"}
+                </td>
+                <td>{x.description}</td>
+                <td>₱{Number(x.amount).toFixed(2)}</td>
+                <td>
+                  {x.status === "Unpaid" && (
+                    <span className="status unpaid">UNPAID</span>
+                  )}
+                </td>
+                <td>
+                  {x.status === "Paid" && (
+                    <span className="status paid">PAID</span>
+                  )}
+                </td>
+                <td>
+                  {canWrite && x.status === "Unpaid" && (
+                    <button
+                      onClick={() => {
+                        setEdit(x);
+                        setOpen(true);
+                      }}
+                    >
+                      <Pencil />
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {!items.length && (
+          <div className="empty">No billing records found.</div>
+        )}
+        <div className="pagination">
+          <button disabled={page <= 1} onClick={() => setPage(page - 1)}>
+            <ChevronLeft /> Previous
+          </button>
+          <span>
+            Page {page} of {pages}
+          </span>
+          <button disabled={page >= pages} onClick={() => setPage(page + 1)}>
+            Next <ChevronRight />
+          </button>
+        </div>
+      </div>
+      {open && (
+        <div className="modal-backdrop">
+          <form className="modal operation-modal" onSubmit={save}>
+            <h2>{edit ? "Register payment" : "Add billing record"}</h2>
+            <label>
+              Description
+              <input
+                name="description"
+                defaultValue={form.description}
+                required
+              />
+            </label>
+            <label>
+              Subtotal
+              <input
+                name="amount"
+                type="number"
+                min="0.01"
+                step="0.01"
+                defaultValue={form.amount}
+                required
+              />
+            </label>
+            {edit && (
+              <label>
+                Amount paid
+                <input
+                  name="amountPaid"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  defaultValue={form.amountPaid}
+                  required
+                />
+              </label>
+            )}
+            <label>
+              Discount
+              <select name="discountType" defaultValue={form.discountType}>
+                {["None", "Senior Citizen", "PWD"].map((x) => (
+                  <option key={x}>{x}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Payment method
+              <select name="paymentMethod" defaultValue={form.paymentMethod}>
+                {["Cash", "Card", "GCash", "Bank transfer", "Other"].map(
+                  (x) => (
+                    <option key={x}>{x}</option>
+                  ),
+                )}
+              </select>
+            </label>
+            <label>
+              Due date
+              <input
+                name="dueDate"
+                type="date"
+                defaultValue={form.dueDate}
+                required
+              />
+            </label>
+            <label>
+              Status
+              <input value="Unpaid" disabled />
+            </label>
+            <button className="primary full">Save record</button>
+            <button
+              type="button"
+              className="secondary full"
+              onClick={() => setOpen(false)}
+            >
+              Cancel
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
