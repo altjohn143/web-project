@@ -784,26 +784,14 @@
 
 .appointment-page .patient-form .schedule-row {
   margin-top: 8px;
-  align-items: stretch;
-}
-
-.appointment-page .schedule-details {
-  align-self: stretch;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 24px;
-}
-
-.appointment-page .schedule-details label {
-  height: auto;
-  margin-top: 0;
-  justify-content: flex-start;
+  align-items: start;
 }
 
 .appointment-page .time-slot-picker {
+  grid-column: 1 / -1;
+  width: min(100%, 330px);
   min-width: 0;
-  margin: 8px 0 0;
+  margin: 10px auto 0;
   padding: 0;
   border: 0;
 }
@@ -811,7 +799,9 @@
 .appointment-page .time-slot-picker legend {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 5px;
+  text-align: center;
   padding: 0;
   color: #052f38;
   font-size: 13px;

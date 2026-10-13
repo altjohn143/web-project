@@ -171,10 +171,8 @@ export default function PatientAppointmentPage() {
               <label>Email address <small>We’ll verify this before submitting your request.</small><input name="email" type="email" value={form.email} onChange={update} autoComplete="email" inputMode="email" title="Enter a valid email address, including @." required /></label>
             </div>
             <div className="form-row schedule-row">
-              <div className="schedule-details">
-                <label>Preferred date<small>Monday–Friday only</small><input name="date" type="date" min={today} value={form.date} onChange={update} required /></label>
-                <label>What can we help you with?<small>We’ll assign the right practitioner automatically.</small><select name="careType" value={form.careType} onChange={update} required><option value="">Select a type of care</option>{careOptions.map(option => <option key={option} value={option}>{option}</option>)}</select></label>
-              </div>
+              <label>Preferred date<small>Monday–Friday only</small><input name="date" type="date" min={today} value={form.date} onChange={update} required /></label>
+              <label>What can we help you with?<small>We’ll assign the right practitioner automatically.</small><select name="careType" value={form.careType} onChange={update} required><option value="">Select a type of care</option>{careOptions.map(option => <option key={option} value={option}>{option}</option>)}</select></label>
               <AnalogTimePicker value={form.time} onChange={time => setForm({ ...form, time })} />
             </div>
             {error && <div className="form-error">{error}</div>}<button className="primary full" disabled={busy}>{busy ? "Sending code..." : "Send verification code"}</button><p className="form-note">We’ll email a verification code before your request is submitted.</p>
