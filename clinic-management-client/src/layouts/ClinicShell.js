@@ -11,6 +11,7 @@ import { Appointments, AppointmentModal } from "../features/appointments/Appoint
 import { Doctors, StaffAccounts, Module } from "../features/staff/StaffPages";
 import { BillingPage, LaboratoryPage } from "../OperationsPages";
 import { DocumentsPage, InventoryPage, NotificationsPage, PrescriptionsPage, QueuePage, ReferralsPage } from "../WorkflowPages";
+import { confirmDialog } from "../components/common/AppDialogs";
 
 export default function ClinicShell() {
   const { user, logout } = useAuth();
@@ -119,7 +120,7 @@ export default function ClinicShell() {
         : status === "Cancelled"
           ? "Cancel this appointment because the patient did not attend?"
           : null;
-    if (prompt && !window.confirm(prompt)) return;
+    if (prompt && !await confirmDialog({ title: "Confirm appointment update", message: prompt, confirmLabel: "Continue" })) return;
     try {
       setError("");
       await api.patch(`/appointments/${item._id}/status`, { status });
@@ -131,7 +132,7 @@ export default function ClinicShell() {
     }
   };
   const remove = async (id) => {
-    if (window.confirm("Delete this appointment?")) {
+    if (await confirmDialog({ title: "Delete appointment", message: "Delete this appointment? This action cannot be undone.", confirmLabel: "Delete" })) {
       await api.delete(`/appointments/${id}`);
       await load();
     }

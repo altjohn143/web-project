@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import api from "./api";
 import { useAuth } from "./AuthContext";
+import { confirmDialog } from "./components/common/AppDialogs";
 
 const patientBlank = {
   firstName: "",
@@ -88,7 +89,7 @@ function CrudPage({ type, title, icon, blank }) {
     load();
   }, [load]);
   const remove = async (id) => {
-    if (window.confirm("Delete this record?")) {
+    if (await confirmDialog({ title: "Delete record", message: "Delete this record? This action cannot be undone.", confirmLabel: "Delete" })) {
       await api.delete(`/${type}/${id}`);
       load();
     }

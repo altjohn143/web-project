@@ -6,6 +6,7 @@ import api from "../../api";
 import PasswordInput from "../../components/common/PasswordInput";
 import { PatientsPage, RecordsPage } from "../../DataPages";
 import { medicalSpecialties, strongPassword } from "../../utils/clinic";
+import { confirmDialog, noticeDialog } from "../../components/common/AppDialogs";
 
 export function Doctors({ user }) {
   const [doctors, setDoctors] = useState([]),
@@ -169,9 +170,9 @@ function AccountActions({ member, user, onEdit, onChanged }) {
   if (!canManage) return null;
   const toggleArchive = async () => {
     const action = member.isActive === false ? "restore" : "archive";
-    if (!window.confirm(`${action === "archive" ? "Archive" : "Restore"} ${member.name}'s account?`)) return;
+    if (!await confirmDialog({ title: `${action === "archive" ? "Archive" : "Restore"} account`, message: `${action === "archive" ? "Archive" : "Restore"} ${member.name}'s account?`, confirmLabel: action === "archive" ? "Archive" : "Restore" })) return;
     try { await api.patch(`/users/${member._id}/${action}`); onChanged(); }
-    catch (e) { window.alert(e.response?.data?.message || `Unable to ${action} account.`); }
+    catch (e) { await noticeDialog({ title: "Account update failed", message: e.response?.data?.message || `Unable to ${action} account.` }); }
   };
   return <div className="account-actions">
     <span className={`account-state ${member.isActive === false ? "archived" : ""}`}>{member.isActive === false ? "Archived" : "Active"}</span>
