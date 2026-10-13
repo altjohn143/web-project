@@ -433,12 +433,37 @@ header {
 }
 
 .staff-table .data-row {
-  grid-template-columns: 42px 1.4fr 0.8fr 0.8fr;
+  grid-template-columns: 42px 1.4fr 0.8fr 0.8fr minmax(155px, auto);
 }
 
 .staff-table {
   margin-top: 35px;
 }
+
+.account-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.account-actions button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--cream);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.account-actions button:hover { background: var(--sage); color: var(--cream); }
+.account-actions svg { width: 14px; }
+.account-state { color: var(--sage-dark) !important; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.account-state.archived { color: #a45a4e !important; }
+.doctor-card .account-actions { margin-top: 14px; justify-content: flex-start; }
 
 .role-badge {
   margin-left: auto;

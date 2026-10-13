@@ -1,19 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Stethoscope, Users, X } from "lucide-react";
+import { Archive, ArchiveRestore, Pencil, Stethoscope, Users, X } from "lucide-react";
 import api from "../../api";
 import PasswordInput from "../../components/common/PasswordInput";
 import { PatientsPage, RecordsPage } from "../../DataPages";
 import { medicalSpecialties, strongPassword } from "../../utils/clinic";
 
-export function Doctors() {
+export function Doctors({ user }) {
   const [doctors, setDoctors] = useState([]),
     [error, setError] = useState(""),
-    [open, setOpen] = useState(false);
+    [open, setOpen] = useState(false),
+    [editing, setEditing] = useState(null);
   const load = useCallback(
     () =>
       api
-        .get("/doctors")
+        .get("/users", { params: { role: "doctor" } })
         .then(({ data }) => {
           setDoctors(data);
           setError("");
@@ -35,7 +36,7 @@ export function Doctors() {
           <br />
           <em>people who listen.</em>
         </h1>
-        <button className="primary" onClick={() => setOpen(true)}>
+        <button className="primary" onClick={() => { setEditing(null); setOpen(true); }}>
           Add doctor -&gt;
         </button>
       </section>
@@ -61,13 +62,14 @@ export function Doctors() {
                 patients, and medical records.
               </p>
               <a href={`mailto:${doctor.email}`}>{doctor.email} -&gt;</a>
+              <AccountActions member={doctor} user={user} onEdit={() => { setEditing(doctor); setOpen(true); }} onChanged={load} />
             </div>
           </article>
         ))}
       </div>
       {open && (
         <AccountModal
-          role="doctor"
+          role="doctor" item={editing}
           onClose={() => setOpen(false)}
           onCreated={() => {
             setOpen(false);
@@ -81,7 +83,8 @@ export function Doctors() {
 export function StaffAccounts({ user }) {
   const [staff, setStaff] = useState([]),
     [error, setError] = useState(""),
-    [open, setOpen] = useState(false);
+    [open, setOpen] = useState(false),
+    [editing, setEditing] = useState(null);
   const load = useCallback(
     () =>
       api
@@ -112,7 +115,7 @@ export function StaffAccounts({ user }) {
           <br />
           <em>governed.</em>
         </h1>
-        <button className="primary" onClick={() => setOpen(true)}>
+        <button className="primary" onClick={() => { setEditing(null); setOpen(true); }}>
           Add staff -&gt;
         </button>
       </section>
@@ -136,6 +139,7 @@ export function StaffAccounts({ user }) {
                 <small>Created</small>
                 <span>{new Date(member.createdAt).toLocaleDateString()}</span>
               </div>
+              <AccountActions member={member} user={user} onEdit={() => { setEditing(member); setOpen(true); }} onChanged={load} />
             </div>
           ))
         ) : (
@@ -147,6 +151,7 @@ export function StaffAccounts({ user }) {
           roles={user.role === "superadmin"
             ? ["admin", "receptionist", "doctor", "nurse", "billing", "laboratory"]
             : ["receptionist", "doctor", "nurse", "billing", "laboratory"]}
+          item={editing}
           onClose={() => setOpen(false)}
           onCreated={() => {
             setOpen(false);
@@ -157,6 +162,22 @@ export function StaffAccounts({ user }) {
     </div>
   );
 }
+function AccountActions({ member, user, onEdit, onChanged }) {
+  if (!user) return null;
+  const canManage = user.role === "superadmin" ? member.role !== "superadmin" : !["superadmin", "admin"].includes(member.role);
+  if (!canManage) return null;
+  const toggleArchive = async () => {
+    const action = member.isActive === false ? "restore" : "archive";
+    if (!window.confirm(`${action === "archive" ? "Archive" : "Restore"} ${member.name}'s account?`)) return;
+    try { await api.patch(`/users/${member._id}/${action}`); onChanged(); }
+    catch (e) { window.alert(e.response?.data?.message || `Unable to ${action} account.`); }
+  };
+  return <div className="account-actions">
+    <span className={`account-state ${member.isActive === false ? "archived" : ""}`}>{member.isActive === false ? "Archived" : "Active"}</span>
+    <button type="button" onClick={onEdit} aria-label={`Edit ${member.name}`} title="Edit account"><Pencil /></button>
+    <button type="button" onClick={toggleArchive} aria-label={`${member.isActive === false ? "Restore" : "Archive"} ${member.name}`} title={member.isActive === false ? "Restore account" : "Archive account"}>{member.isActive === false ? <ArchiveRestore /> : <Archive />}</button>
+  </div>;
+}
 const roleName = (role) => ({
   admin: "Administrator",
   receptionist: "Receptionist",
@@ -166,36 +187,39 @@ const roleName = (role) => ({
   laboratory: "Laboratory Staff",
 }[role] || role);
 
-function AccountModal({ role, roles, onClose, onCreated }) {
+function AccountModal({ role, roles, item, onClose, onCreated }) {
   const [form, setForm] = useState({
-      name: "",
-      email: "",
+      name: item?.name || "",
+      email: item?.email || "",
       password: "",
       confirm: "",
-      specialty: "",
-      role: role || roles?.[0] || "receptionist",
+      specialty: item?.specialty || "",
+      role: item?.role || role || roles?.[0] || "receptionist",
     }),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   const submit = async (e) => {
     e.preventDefault();
     setError("");
-    if (!strongPassword.test(form.password))
+    if (!item && !strongPassword.test(form.password))
       return setError(
         "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.",
       );
+    if (form.password && !strongPassword.test(form.password)) return setError("Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.");
     if (form.password !== form.confirm)
       return setError("Passwords do not match.");
     try {
       setBusy(true);
       const accountRole = role || form.role;
-      await api.post("/users", {
+      const payload = {
         name: form.name,
         email: form.email,
-        password: form.password,
         role: accountRole,
         specialty: form.specialty,
-      });
+      };
+      if (form.password) payload.password = form.password;
+      if (item) await api.put(`/users/${item._id}`, payload);
+      else await api.post("/users", payload);
       onCreated();
     } catch (e) {
       setError(
@@ -213,12 +237,12 @@ function AccountModal({ role, roles, onClose, onCreated }) {
         <button type="button" className="modal-x" onClick={onClose}>
           <X />
         </button>
-        <div className="eyebrow">Authorized account creation</div>
-        <h2>Add {roleName(role || form.role)}</h2>
+        <div className="eyebrow">Authorized account management</div>
+        <h2>{item ? "Edit" : "Add"} {roleName(role || form.role)}</h2>
         {roles && (
           <label>
             Staff role
-            <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value, specialty: "" })}>
+            <select value={form.role} disabled={Boolean(item)} onChange={(e) => setForm({ ...form, role: e.target.value, specialty: "" })}>
               {roles.map((value) => <option key={value} value={value}>{roleName(value)}</option>)}
             </select>
           </label>
@@ -260,18 +284,16 @@ function AccountModal({ role, roles, onClose, onCreated }) {
         )}
         <div className="form-row">
           <label>
-            Temporary password
+            {item ? "New password (optional)" : "Temporary password"}
             <PasswordInput
               name="password"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               autoComplete="new-password"
               minLength="8"
-              required
+              required={!item}
             />
-            <small className="password-help">
-              8+ characters with uppercase, lowercase, number, and symbol.
-            </small>
+            <small className="password-help">{item ? "Leave blank to keep the existing password." : "8+ characters with uppercase, lowercase, number, and symbol."}</small>
           </label>
           <label>
             Confirm password
@@ -281,13 +303,13 @@ function AccountModal({ role, roles, onClose, onCreated }) {
               onChange={(e) => setForm({ ...form, confirm: e.target.value })}
               autoComplete="new-password"
               minLength="8"
-              required
+              required={!item}
             />
           </label>
         </div>
         {error && <div className="form-error">{error}</div>}
         <button className="primary full" disabled={busy}>
-          {busy ? "Creating..." : `Create ${roleName(role || form.role)} account`}
+          {busy ? "Saving..." : item ? "Save account changes" : `Create ${roleName(role || form.role)} account`}
         </button>
       </form>
     </div>

@@ -30,7 +30,7 @@ export function AppointmentList({ items, loading }) {
 function AppointmentRow({ item, user, onView, onEdit, onDelete, onStatus }) {
   const date = new Date(item.date),
     doctor = user?.role === "doctor",
-    final = ["Completed", "Cancelled"].includes(item.status);
+    final = ["Completed", "Cancelled", "No-show"].includes(item.status);
   return (
     <div className="appointment">
       <div className="avatar">{initials(item.patient)}</div>

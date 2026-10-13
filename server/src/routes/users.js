@@ -21,7 +21,7 @@ router.get('/', async (req, res, next) => {
     const permitted = actor.role === 'superadmin' ? staffRoles : staffRoles.filter(role => role !== 'admin');
     const requested = req.query.role;
     const role = requested && permitted.includes(requested) ? requested : { $in: permitted };
-    res.json(await User.find({ role }).select('name email role specialty createdAt').sort({ role: 1, name: 1 }));
+    res.json(await User.find({ role }).select('name email role specialty isActive createdAt').sort({ role: 1, name: 1 }));
   } catch (error) { next(error); }
 });
 router.post('/', rules, validate, async (req, res, next) => {
@@ -32,6 +32,48 @@ router.post('/', rules, validate, async (req, res, next) => {
     if (await User.exists({ email: req.body.email })) return res.status(409).json({ message: 'Email already registered' });
     const user = await User.create({ name: req.body.name, email: req.body.email, password: req.body.password, role: req.body.role, specialty: req.body.role === 'doctor' ? req.body.specialty : '' });
     res.status(201).json({ id: user.id, name: user.name, email: user.email, role: user.role, specialty: user.specialty });
+  } catch (error) { next(error); }
+});
+const updateRules = [
+  body('name').trim().isLength({ min: 2, max: 80 }),
+  body('email').isEmail().normalizeEmail(),
+  body('specialty').optional().trim(),
+  body('password').optional({ checkFalsy: true }).matches(strongPassword).withMessage('Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.'),
+];
+const canManage = (actor, target) => actor.role === 'superadmin' ? target.role !== 'superadmin' : !['superadmin', 'admin'].includes(target.role);
+router.put('/:id', updateRules, validate, async (req, res, next) => {
+  try {
+    const actor = await User.findById(req.user.id).select('role');
+    const target = await User.findById(req.params.id);
+    if (!actor || !['superadmin', 'admin'].includes(actor.role) || !target || !canManage(actor, target)) return res.status(403).json({ message: 'You cannot edit this account' });
+    if (await User.exists({ email: req.body.email, _id: { $ne: target._id } })) return res.status(409).json({ message: 'Email already registered' });
+    target.name = req.body.name;
+    target.email = req.body.email;
+    target.specialty = target.role === 'doctor' ? req.body.specialty || '' : '';
+    if (req.body.password) target.password = req.body.password;
+    await target.save();
+    res.json({ id: target.id, name: target.name, email: target.email, role: target.role, specialty: target.specialty, isActive: target.isActive });
+  } catch (error) { next(error); }
+});
+router.patch('/:id/archive', async (req, res, next) => {
+  try {
+    const actor = await User.findById(req.user.id).select('role');
+    const target = await User.findById(req.params.id);
+    if (!actor || !['superadmin', 'admin'].includes(actor.role) || !target || !canManage(actor, target)) return res.status(403).json({ message: 'You cannot archive this account' });
+    if (String(target._id) === String(req.user.id)) return res.status(422).json({ message: 'You cannot archive your own account' });
+    target.isActive = false;
+    await target.save();
+    res.json({ message: 'Account archived' });
+  } catch (error) { next(error); }
+});
+router.patch('/:id/restore', async (req, res, next) => {
+  try {
+    const actor = await User.findById(req.user.id).select('role');
+    const target = await User.findById(req.params.id);
+    if (!actor || !['superadmin', 'admin'].includes(actor.role) || !target || !canManage(actor, target)) return res.status(403).json({ message: 'You cannot restore this account' });
+    target.isActive = true;
+    await target.save();
+    res.json({ message: 'Account restored' });
   } catch (error) { next(error); }
 });
 module.exports = router;

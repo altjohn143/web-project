@@ -79,13 +79,13 @@ const appointmentRequest = (body, doctor) => ({
 // Patient-facing endpoints: patients can request an appointment without an account.
 router.get('/public/doctors', async (_req, res, next) => {
   try {
-    const doctors = await User.find({ role: 'doctor' }).select('name specialty').sort({ name: 1 });
+    const doctors = await User.find({ role: 'doctor', isActive: { $ne: false } }).select('name specialty').sort({ name: 1 });
     res.json(doctors);
   } catch (error) { next(error); }
 });
 
 async function assignPractitioner(careType) {
-  return User.findOne({ role: 'doctor', specialty: { $in: careSpecialties[careType] } })
+  return User.findOne({ role: 'doctor', isActive: { $ne: false }, specialty: { $in: careSpecialties[careType] } })
     .select('name specialty').sort({ name: 1 });
 }
 
@@ -174,6 +174,10 @@ router.get('/', async (req, res, next) => {
     const user = await currentUser(req);
     if (!user) return res.status(401).json({ message: 'User not found' });
     if (!['superadmin', 'admin', 'receptionist', 'doctor', 'nurse'].includes(user.role)) return res.status(403).json({ message: 'Appointment access denied' });
+    // An appointment left pending after its scheduled day is no longer expected
+    // at reception. Keep it for the audit trail, but move it to No-show.
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    await Appointment.updateMany({ date: { $lt: today }, status: { $in: ['Pending', 'Confirmed'] } }, { $set: { status: 'No-show' } });
     const page = Math.max(+req.query.page || 1, 1);
     const limit = Math.min(+req.query.limit || 10, 50);
     const q = req.query.q?.trim();
@@ -186,6 +190,19 @@ router.get('/', async (req, res, next) => {
       Appointment.countDocuments(filter),
     ]);
     res.json({ data, page, pages: Math.max(Math.ceil(total / limit), 1), total });
+  } catch (error) { next(error); }
+});
+
+router.patch('/:id/no-show', async (req, res, next) => {
+  try {
+    const user = await currentUser(req);
+    if (!['admin', 'superadmin', 'receptionist'].includes(user.role)) return res.status(403).json({ message: 'Reception access required' });
+    const appointment = await Appointment.findById(req.params.id);
+    if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
+    if (!['Pending', 'Confirmed'].includes(appointment.status)) return res.status(422).json({ message: 'Only pending or confirmed appointments can be marked as no-show.' });
+    appointment.status = 'No-show';
+    await appointment.save();
+    res.json(appointment);
   } catch (error) { next(error); }
 });
 

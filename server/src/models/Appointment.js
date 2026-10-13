@@ -9,7 +9,7 @@ const schema = new mongoose.Schema({
   reason: { type: String, required: true, trim: true },
   doctor: { type: String, required: true, trim: true },
   date: { type: Date, required: true },
-  status: { type: String, enum: ['Pending','Confirmed','Completed','Cancelled'], default: 'Pending' },
+  status: { type: String, enum: ['Pending','Confirmed','Completed','Cancelled','No-show'], default: 'Pending' },
   diagnosis: { type: String, trim: true },
   treatment: { type: String, trim: true },
   notes: { type: String, trim: true, maxlength: 2000 },

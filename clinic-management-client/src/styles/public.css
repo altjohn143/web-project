@@ -889,6 +889,45 @@
   gap: 16px;
 }
 
+/* Shared application dialogs: keep every form and its close control inside
+   the viewport, even when a form is taller than a laptop screen. */
+.modal-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483647 !important;
+  display: grid !important;
+  align-items: start !important;
+  justify-items: center !important;
+  overflow-y: auto !important;
+  padding: max(16px, env(safe-area-inset-top)) 16px !important;
+}
+
+.modal-backdrop > .modal {
+  width: min(620px, 100%) !important;
+  max-height: calc(100dvh - 32px) !important;
+  margin: 0 !important;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+}
+
+.modal-backdrop .modal-x {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  margin: 0 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+}
+
+.modal-backdrop .modal-x:hover { background: var(--sage); color: var(--cream); }
+
 .time-picker-modal .eyebrow {
   margin: 0 0 5px;
   color: #0f6f74;
