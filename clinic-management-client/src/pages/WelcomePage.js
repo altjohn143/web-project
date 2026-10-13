@@ -4,9 +4,11 @@ import { CalendarDays, HeartPulse, ShieldCheck, Stethoscope } from "lucide-react
 import doctorHero from "../assets/doctor-hero.png";
 import aboutClinic from "../assets/public/about-clinic.png";
 import privacyRecords from "../assets/public/privacy-records.png";
+import useStaffSignInReveal from "../hooks/useStaffSignInReveal";
 
 export default function WelcomePage() {
   const [activeSection, setActiveSection] = useState("home");
+  const showStaffSignIn = useStaffSignInReveal();
   useEffect(() => {
     // Keep this in visual page order, not navbar order, so the active link
     // always reflects the section currently under the sticky header.
@@ -47,7 +49,7 @@ export default function WelcomePage() {
         <h1>Healthcare designed around you</h1>
         <div className="hero-actions">
           <Link className="primary" to="/appointment">Book an appointment</Link>
-          <Link className="secondary" to="/login">Staff sign in</Link>
+          {showStaffSignIn && <Link className="secondary" to="/login">Staff sign in</Link>}
         </div>
         <p className="hero-copy">From routine checkups to specialized treatment, ClaraCare brings experienced physicians and coordinated care together under one roof.</p>
       </div>

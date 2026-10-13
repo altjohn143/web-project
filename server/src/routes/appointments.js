@@ -189,9 +189,12 @@ router.get('/', async (req, res, next) => {
     const q = req.query.q?.trim();
     const filters = [];
     if (q) filters.push({ $or: [{ patient: { $regex: q, $options: 'i' } }, { doctor: { $regex: q, $options: 'i' } }] });
+    if (req.query.status && ['Pending', 'Confirmed', 'Checked in', 'Completed', 'Cancelled', 'No-show'].includes(req.query.status)) filters.push({ status: req.query.status });
     const filter = filters.length ? { $and: filters } : {};
+    const sortKey = ['date', 'patient', 'doctor', 'status', 'createdAt'].includes(req.query.sort) ? req.query.sort : 'date';
+    const direction = req.query.order === 'desc' ? -1 : 1;
     const [data, total] = await Promise.all([
-      Appointment.find(filter).sort({ date: 1 }).skip((page - 1) * limit).limit(limit),
+      Appointment.find(filter).sort({ [sortKey]: direction, _id: direction }).skip((page - 1) * limit).limit(limit),
       Appointment.countDocuments(filter),
     ]);
     res.json({ data, page, pages: Math.max(Math.ceil(total / limit), 1), total });

@@ -69,6 +69,9 @@ function CrudPage({ type, title, icon, blank }) {
     [pages, setPages] = useState(1),
     [total, setTotal] = useState(0);
   const [q, setQ] = useState(""),
+    [filter, setFilter] = useState("all"),
+    [sort, setSort] = useState(type === "patients" ? "createdAt" : "visitDate"),
+    [order, setOrder] = useState("desc"),
     [editing, setEditing] = useState(null),
     [viewing, setViewing] = useState(null),
     [open, setOpen] = useState(false),
@@ -76,7 +79,7 @@ function CrudPage({ type, title, icon, blank }) {
   const load = useCallback(async () => {
     try {
       const { data } = await api.get(`/${type}`, {
-        params: { page, limit: 8, q },
+        params: { page, limit: 8, q, ...(type === "patients" && filter !== "all" ? { sex: filter } : {}), sort, order },
       });
       setItems(data.data);
       setPages(data.pages);
@@ -85,7 +88,7 @@ function CrudPage({ type, title, icon, blank }) {
     } catch {
       setError(`Unable to load ${title.toLowerCase()}.`);
     }
-  }, [type, title, page, q]);
+  }, [type, title, page, q, filter, sort, order]);
   useEffect(() => {
     load();
   }, [load]);
@@ -135,6 +138,13 @@ function CrudPage({ type, title, icon, blank }) {
         />
         <span>{total} records</span>
       </div>
+      <section className="account-controls" aria-label={`${title} filters and sorting`}>
+        {type === "patients" && <select value={filter} onChange={(e) => { setFilter(e.target.value); setPage(1); }} aria-label="Filter patients by sex"><option value="all">All sexes</option><option value="Female">Female</option><option value="Male">Male</option><option value="Other">Other</option></select>}
+        <select value={sort} onChange={(e) => { setSort(e.target.value); setPage(1); }} aria-label={`Sort ${title.toLowerCase()}`}>
+          {type === "patients" ? <><option value="createdAt">Date added</option><option value="firstName">First name</option><option value="lastName">Last name</option><option value="birthDate">Birth date</option></> : <><option value="visitDate">Visit date</option><option value="diagnosis">Diagnosis</option><option value="createdAt">Date added</option></>}
+        </select>
+        <button className="secondary account-sort" type="button" onClick={() => setOrder(order === "asc" ? "desc" : "asc")}>{order === "asc" ? "Ascending" : "Descending"}</button>
+      </section>
       {error && <div className="form-error api-error">{error}</div>}
       <div className="data-table">
         {items.length ? (

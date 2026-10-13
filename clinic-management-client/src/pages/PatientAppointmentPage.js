@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { HeartPulse, X } from "lucide-react";
 import { getCountries, getCountryCallingCode } from "libphonenumber-js";
 import api from "../api";
+import useStaffSignInReveal from "../hooks/useStaffSignInReveal";
 
 const careOptions = [
   "General medicine",
@@ -122,6 +123,7 @@ function isOfficeHours(value) {
 }
 
 export default function PatientAppointmentPage() {
+  const showStaffSignIn = useStaffSignInReveal();
   const [form, setForm] = useState(initialForm);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -163,7 +165,7 @@ export default function PatientAppointmentPage() {
   };
 
   return <main className="public-page appointment-page">
-    <nav className="public-nav"><Link className="public-brand" to="/"><HeartPulse /> CLARA <em>care</em></Link><Link className="staff-link" to="/login">Staff sign in</Link></nav>
+    <nav className="public-nav"><Link className="public-brand" to="/"><HeartPulse /> CLARA <em>care</em></Link>{showStaffSignIn && <Link className="staff-link" to="/login">Staff sign in</Link>}</nav>
     <section className="appointment-layout">
       <div className="appointment-intro"><p className="eyebrow">PATIENT APPOINTMENTS</p><h1>Let’s arrange your <em>visit.</em></h1><p>You do not need an account. Send your request and our staff will confirm the time.</p><Link to="/">Back to home</Link></div>
       <form className="patient-form" onSubmit={verificationId ? verify : submit}>

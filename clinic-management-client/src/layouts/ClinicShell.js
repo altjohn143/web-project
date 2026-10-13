@@ -37,6 +37,9 @@ export default function ClinicShell() {
   const [mobile, setMobile] = useState(false),
     [sidebarCollapsed, setSidebarCollapsed] = useState(false),
     [query, setQuery] = useState(""),
+    [appointmentStatus, setAppointmentStatus] = useState("all"),
+    [appointmentSort, setAppointmentSort] = useState("date"),
+    [appointmentOrder, setAppointmentOrder] = useState("asc"),
     [items, setItems] = useState([]),
     [loading, setLoading] = useState(true),
     [page, setPage] = useState(1),
@@ -59,7 +62,7 @@ export default function ClinicShell() {
     try {
       if (!silent) { setLoading(true); setError(""); }
       const { data } = await api.get("/appointments", {
-        params: { page, limit: 6, q: query },
+        params: { page, limit: 6, q: query, status: appointmentStatus === "all" ? undefined : appointmentStatus, sort: appointmentSort, order: appointmentOrder },
       });
       setItems(data.data);
       setPages(data.pages || 1);
@@ -69,7 +72,7 @@ export default function ClinicShell() {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [page, query, appointmentAccess]);
+  }, [page, query, appointmentStatus, appointmentSort, appointmentOrder, appointmentAccess]);
   useEffect(() => {
     const timer = setTimeout(load, 250);
     return () => clearTimeout(timer);
@@ -294,6 +297,14 @@ export default function ClinicShell() {
                 onDelete={canSchedule ? remove : null}
                 onStatus={changeStatus}
                 onCheckIn={role === "receptionist" ? checkIn : null}
+                query={query}
+                setQuery={setQuery}
+                statusFilter={appointmentStatus}
+                setStatusFilter={setAppointmentStatus}
+                sort={appointmentSort}
+                setSort={setAppointmentSort}
+                order={appointmentOrder}
+                setOrder={setAppointmentOrder}
                 loading={loading}
                 error={error}
               />

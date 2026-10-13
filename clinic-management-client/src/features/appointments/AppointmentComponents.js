@@ -122,6 +122,14 @@ export function Appointments({
   onDelete,
   onStatus,
   onCheckIn,
+  query,
+  setQuery,
+  statusFilter,
+  setStatusFilter,
+  sort,
+  setSort,
+  order,
+  setOrder,
   loading,
   error,
 }) {
@@ -152,6 +160,12 @@ export function Appointments({
           </h3>
           <span>{total} records</span>
         </div>
+        <section className="account-controls" aria-label="Appointment filters and sorting">
+          <label className="account-search"><input value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} placeholder="Search patient or practitioner" /></label>
+          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} aria-label="Filter appointments by status"><option value="all">All statuses</option>{["Pending", "Confirmed", "Checked in", "Completed", "Cancelled", "No-show"].map(status => <option key={status} value={status}>{status}</option>)}</select>
+          <select value={sort} onChange={(e) => { setSort(e.target.value); setPage(1); }} aria-label="Sort appointments"><option value="date">Date and time</option><option value="patient">Patient</option><option value="doctor">Practitioner</option><option value="status">Status</option></select>
+          <button className="secondary account-sort" type="button" onClick={() => setOrder(order === "asc" ? "desc" : "asc")}>{order === "asc" ? "Ascending" : "Descending"}</button>
+        </section>
         {error && <div className="form-error api-error">{error}</div>}
         {loading ? (
           <div className="empty">Loading...</div>

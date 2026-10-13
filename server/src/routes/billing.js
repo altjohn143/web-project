@@ -43,7 +43,9 @@ router.get('/', readAccess, async (req, res, next) => { try {
   const page = Math.max(+req.query.page || 1, 1), limit = Math.min(+req.query.limit || 10, 50), q = req.query.q?.trim();
   let filter = {};
   if (q) { const Patient = require('../models/Patient'); const ids = await Patient.find({ $or: [{ firstName: { $regex: q, $options: 'i' } }, { lastName: { $regex: q, $options: 'i' } }] }).distinct('_id'); filter = { $or: [{ patient: { $in: ids } }, { description: { $regex: q, $options: 'i' } }, { status: { $regex: q, $options: 'i' } }] }; }
-  const [data, total] = await Promise.all([Invoice.find(filter).populate('patient', 'firstName lastName email phone').populate('cashier', 'name').sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit), Invoice.countDocuments(filter)]);
+  if (req.query.status && ['Unpaid', 'Paid'].includes(req.query.status)) filter.status = req.query.status;
+  const sortKey = ['createdAt', 'dueDate', 'amount', 'status'].includes(req.query.sort) ? req.query.sort : 'createdAt', direction = req.query.order === 'asc' ? 1 : -1;
+  const [data, total] = await Promise.all([Invoice.find(filter).populate('patient', 'firstName lastName email phone').populate('cashier', 'name').sort({ [sortKey]: direction, _id: direction }).skip((page - 1) * limit).limit(limit), Invoice.countDocuments(filter)]);
   res.json({ data: data.map(publicInvoice), total, page, pages: Math.max(Math.ceil(total / limit), 1) });
 } catch (error) { next(error); } });
 
