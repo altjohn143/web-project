@@ -784,6 +784,18 @@
 
 .appointment-page .patient-form .schedule-row {
   margin-top: 8px;
+  align-items: start;
+}
+
+.appointment-page .schedule-details {
+  display: grid;
+  gap: 14px;
+}
+
+.appointment-page .schedule-details label {
+  height: auto;
+  margin-top: 0;
+  justify-content: flex-start;
 }
 
 .appointment-page .time-slot-picker {
