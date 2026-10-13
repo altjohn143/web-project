@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { HeartPulse } from "lucide-react";
+import { HeartPulse, X } from "lucide-react";
 import { getCountries, getCountryCallingCode } from "libphonenumber-js";
 import api from "../api";
 
@@ -89,11 +89,23 @@ function AnalogTimePicker({ value, onChange }) {
       })}
       <line className={`clock-hand hour-hand ${dragging === "hour" ? "dragging" : ""}`} x1="110" y1="110" x2={hourPoint.x} y2={hourPoint.y} />
       <line className={`clock-hand minute-hand ${dragging === "minute" ? "dragging" : ""}`} x1="110" y1="110" x2={minutePoint.x} y2={minutePoint.y} />
+      <line className="clock-drag-zone" x1="110" y1="110" x2={hourPoint.x} y2={hourPoint.y} onPointerDown={event => beginDrag(event, "hour")} onPointerMove={event => dragging === "hour" && updateFromPointer(event, "hour")} onPointerUp={() => setDragging("")} onPointerCancel={() => setDragging("")} />
+      <line className="clock-drag-zone" x1="110" y1="110" x2={minutePoint.x} y2={minutePoint.y} onPointerDown={event => beginDrag(event, "minute")} onPointerMove={event => dragging === "minute" && updateFromPointer(event, "minute")} onPointerUp={() => setDragging("")} onPointerCancel={() => setDragging("")} />
       <circle className="clock-center" cx="110" cy="110" r="7" />
       <circle className="clock-handle hour-handle" cx={hourPoint.x} cy={hourPoint.y} r="12" role="slider" aria-label="Appointment hour" aria-valuetext={formatTime(`${String(selectedHour).padStart(2, "0")}:${String(selectedMinute).padStart(2, "0")}`)} tabIndex="0" onPointerDown={event => beginDrag(event, "hour")} onPointerMove={event => dragging === "hour" && updateFromPointer(event, "hour")} onPointerUp={() => setDragging("")} onPointerCancel={() => setDragging("")} />
       <circle className="clock-handle minute-handle" cx={minutePoint.x} cy={minutePoint.y} r="11" role="slider" aria-label="Appointment minutes" aria-valuetext={selectedMinute === 0 ? "zero minutes" : "thirty minutes"} tabIndex="0" onPointerDown={event => beginDrag(event, "minute")} onPointerMove={event => dragging === "minute" && updateFromPointer(event, "minute")} onPointerUp={() => setDragging("")} onPointerCancel={() => setDragging("")} />
     </svg>
   </fieldset>;
+}
+
+function TimePickerModal({ value, onChange, onClose }) {
+  return <div className="time-picker-backdrop" role="presentation" onMouseDown={event => event.target === event.currentTarget && onClose()}>
+    <section className="time-picker-modal" role="dialog" aria-modal="true" aria-labelledby="time-picker-title">
+      <div className="time-picker-modal-head"><div><p className="eyebrow">APPOINTMENT TIME</p><h2 id="time-picker-title">Choose your preferred time</h2></div><button type="button" className="time-picker-close" aria-label="Close time picker" onClick={onClose}><X /></button></div>
+      <AnalogTimePicker value={value} onChange={onChange} />
+      <button type="button" className="primary full time-picker-done" onClick={onClose} disabled={!value}>Done</button>
+    </section>
+  </div>;
 }
 
 const initialForm = {
@@ -116,6 +128,7 @@ export default function PatientAppointmentPage() {
   const [busy, setBusy] = useState(false);
   const [verificationId, setVerificationId] = useState("");
   const [code, setCode] = useState("");
+  const [timePickerOpen, setTimePickerOpen] = useState(false);
   const selectedCountry = countryOptions.find(option => option.country === form.country);
   const isPhilippineNumber = form.country === "PH";
   const today = new Date().toLocaleDateString("en-CA");
@@ -173,11 +186,12 @@ export default function PatientAppointmentPage() {
             <div className="form-row schedule-row">
               <label>Preferred date<small>Monday–Friday only</small><input name="date" type="date" min={today} value={form.date} onChange={update} required /></label>
               <label>What can we help you with?<small>We’ll assign the right practitioner automatically.</small><select name="careType" value={form.careType} onChange={update} required><option value="">Select a type of care</option>{careOptions.map(option => <option key={option} value={option}>{option}</option>)}</select></label>
-              <AnalogTimePicker value={form.time} onChange={time => setForm({ ...form, time })} />
+              <div className="time-picker-summary"><span>Preferred time <small>Clinic hours: 8:00 AM–5:00 PM</small></span><button type="button" onClick={() => setTimePickerOpen(true)}>{form.time ? `Change time — ${formatTime(form.time)}` : "Choose a preferred time"}</button></div>
             </div>
             {error && <div className="form-error">{error}</div>}<button className="primary full" disabled={busy}>{busy ? "Sending code..." : "Send verification code"}</button><p className="form-note">We’ll email a verification code before your request is submitted.</p>
           </>}
       </form>
+      {timePickerOpen && <TimePickerModal value={form.time} onChange={time => setForm({ ...form, time })} onClose={() => setTimePickerOpen(false)} />}
     </section>
   </main>;
 }

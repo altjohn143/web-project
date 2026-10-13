@@ -268,6 +268,46 @@ header {
   padding-left: 25px;
 }
 
+.notification-bell {
+  position: relative;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease;
+}
+
+.notification-bell:hover,
+.notification-bell:focus-visible {
+  border-color: var(--sage);
+  background: #edf5ef;
+  outline: none;
+  transform: translateY(-2px);
+}
+
+.notification-bell svg { width: 18px; }
+
+.notification-bell b {
+  position: absolute;
+  top: -5px;
+  right: -6px;
+  display: grid;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  place-items: center;
+  border: 2px solid var(--cream);
+  border-radius: 999px;
+  background: #c85048;
+  color: #fff;
+  font: 800 10px/1 "DM Sans", sans-serif;
+}
+
 .profile-chip > div {
   width: 36px;
   height: 36px;

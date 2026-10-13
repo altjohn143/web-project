@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Navigate, NavLink, Route, Routes } from "react-router-dom";
-import { Activity, CalendarDays, ClipboardPlus, DollarSign, FlaskConical, HeartPulse, LayoutDashboard, LogOut, Menu, Search, Settings, Stethoscope, UserRound, Users, X } from "lucide-react";
+import { Activity, Bell, CalendarDays, ClipboardPlus, DollarSign, FlaskConical, HeartPulse, LayoutDashboard, LogOut, Menu, Search, Settings, Stethoscope, UserRound, Users, X } from "lucide-react";
 import { useAuth } from "../AuthContext";
 import api from "../api";
 import { initials } from "../utils/clinic";
@@ -46,7 +46,8 @@ export default function ClinicShell() {
     [total, setTotal] = useState(0),
     [modal, setModal] = useState(false),
     [editing, setEditing] = useState(null),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [unreadNotifications, setUnreadNotifications] = useState(0);
   const load = useCallback(async () => {
     if (!appointmentAccess) {
       setItems([]);
@@ -76,6 +77,21 @@ export default function ClinicShell() {
     const timer = setTimeout(load, 250);
     return () => clearTimeout(timer);
   }, [load]);
+  const loadNotifications = useCallback(async () => {
+    try {
+      const { data } = await api.get("/notifications");
+      setUnreadNotifications(data.filter(item => !item.readBy?.includes(user.id)).length);
+    } catch {
+      // Notifications must not prevent the rest of the workspace from loading.
+    }
+  }, [user.id]);
+  useEffect(() => {
+    loadNotifications();
+    const timer = setInterval(loadNotifications, 15000);
+    const refreshOnFocus = () => document.visibilityState === "visible" && loadNotifications();
+    document.addEventListener("visibilitychange", refreshOnFocus);
+    return () => { clearInterval(timer); document.removeEventListener("visibilitychange", refreshOnFocus); };
+  }, [loadNotifications]);
   const save = async (form) => {
     editing
       ? await api.put(`/appointments/${editing._id}`, form)
@@ -225,6 +241,10 @@ export default function ClinicShell() {
             />
           </div>
           <div className="role-badge">{roleLabels[role] || role}</div>
+          <NavLink to="/notifications" className="notification-bell" aria-label={`Notifications${unreadNotifications ? `, ${unreadNotifications} unread` : ""}`}>
+            <Bell />
+            {unreadNotifications > 0 && <b>{unreadNotifications > 9 ? "9+" : unreadNotifications}</b>}
+          </NavLink>
           <NavLink to="/profile" className="profile-chip">
             <div>{initials(user.name)}</div>
             <span>

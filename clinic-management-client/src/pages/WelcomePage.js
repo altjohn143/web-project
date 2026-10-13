@@ -8,7 +8,9 @@ import privacyRecords from "../assets/public/privacy-records.png";
 export default function WelcomePage() {
   const [activeSection, setActiveSection] = useState("home");
   useEffect(() => {
-    const sectionIds = ["mission-vision", "how-it-works", "about-us", "privacy-policy"];
+    // Keep this in visual page order, not navbar order, so the active link
+    // always reflects the section currently under the sticky header.
+    const sectionIds = ["how-it-works", "mission-vision", "about-us", "privacy-policy"];
     const updateActiveSection = () => {
       const current = sectionIds.reduce((active, id) => {
         const section = document.getElementById(id);
