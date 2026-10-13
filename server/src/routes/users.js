@@ -21,7 +21,24 @@ router.get('/', async (req, res, next) => {
     const permitted = actor.role === 'superadmin' ? staffRoles : staffRoles.filter(role => role !== 'admin');
     const requested = req.query.role;
     const role = requested && permitted.includes(requested) ? requested : { $in: permitted };
-    res.json(await User.find({ role }).select('name email role specialty isActive createdAt').sort({ role: 1, name: 1 }));
+    const filters = [{ role }];
+    if (req.query.status === 'active') filters.push({ isActive: { $ne: false } });
+    if (req.query.status === 'archived') filters.push({ isActive: false });
+    if (req.query.q?.trim()) {
+      const query = { $regex: req.query.q.trim(), $options: 'i' };
+      filters.push({ $or: [{ name: query }, { email: query }] });
+    }
+    const sortKey = ['name', 'role', 'createdAt'].includes(req.query.sort) ? req.query.sort : 'createdAt';
+    const direction = req.query.order === 'asc' ? 1 : -1;
+    const filter = filters.length === 1 ? filters[0] : { $and: filters };
+    const select = 'name email role specialty isActive createdAt';
+    if (req.query.paged === '1') {
+      const page = Math.max(Number(req.query.page) || 1, 1);
+      const limit = Math.min(Math.max(Number(req.query.limit) || 8, 1), 50);
+      const [data, total] = await Promise.all([User.find(filter).select(select).sort({ [sortKey]: direction, _id: direction }).skip((page - 1) * limit).limit(limit), User.countDocuments(filter)]);
+      return res.json({ data, total, page, pages: Math.max(Math.ceil(total / limit), 1) });
+    }
+    res.json(await User.find(filter).select(select).sort({ [sortKey]: direction, _id: direction }));
   } catch (error) { next(error); }
 });
 router.post('/', rules, validate, async (req, res, next) => {

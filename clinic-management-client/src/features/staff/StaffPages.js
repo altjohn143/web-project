@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { NavLink } from "react-router-dom";
-import { Archive, ArchiveRestore, Pencil, Stethoscope, Users, X } from "lucide-react";
+import { Archive, ArchiveRestore, ChevronLeft, ChevronRight, Pencil, Search, Stethoscope, Users, X } from "lucide-react";
 import api from "../../api";
 import PasswordInput from "../../components/common/PasswordInput";
 import { PatientsPage, RecordsPage } from "../../DataPages";
@@ -86,13 +86,23 @@ export function StaffAccounts({ user }) {
   const [staff, setStaff] = useState([]),
     [error, setError] = useState(""),
     [open, setOpen] = useState(false),
-    [editing, setEditing] = useState(null);
+    [editing, setEditing] = useState(null),
+    [page, setPage] = useState(1),
+    [pages, setPages] = useState(1),
+    [total, setTotal] = useState(0),
+    [query, setQuery] = useState(""),
+    [roleFilter, setRoleFilter] = useState("all"),
+    [statusFilter, setStatusFilter] = useState("all"),
+    [sort, setSort] = useState("createdAt"),
+    [order, setOrder] = useState("desc");
   const load = useCallback(
     () =>
       api
-        .get("/users")
+        .get("/users", { params: { paged: 1, page, limit: 8, q: query, role: roleFilter === "all" ? undefined : roleFilter, status: statusFilter === "all" ? undefined : statusFilter, sort, order } })
         .then(({ data }) => {
-          setStaff(data);
+          setStaff(data.data);
+          setPages(data.pages);
+          setTotal(data.total);
           setError("");
         })
         .catch((e) =>
@@ -101,7 +111,7 @@ export function StaffAccounts({ user }) {
               "Unable to load staff accounts.",
           ),
         ),
-    [],
+    [page, query, roleFilter, statusFilter, sort, order],
   );
   useEffect(() => {
     load();
@@ -122,6 +132,14 @@ export function StaffAccounts({ user }) {
         </button>
       </section>
       {error && <div className="form-error api-error">{error}</div>}
+      <section className="account-controls" aria-label="Staff account controls">
+        <label className="account-search"><Search /><input value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} placeholder="Search name or email" /></label>
+        <select value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }} aria-label="Filter by role"><option value="all">All roles</option>{(user.role === "superadmin" ? ["admin", "receptionist", "doctor", "nurse", "billing", "laboratory"] : ["receptionist", "doctor", "nurse", "billing", "laboratory"]).map(role => <option key={role} value={role}>{roleName(role)}</option>)}</select>
+        <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} aria-label="Filter by status"><option value="all">All statuses</option><option value="active">Active</option><option value="archived">Archived</option></select>
+        <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort accounts"><option value="createdAt">Date created</option><option value="name">Name</option><option value="role">Role</option></select>
+        <button className="secondary account-sort" type="button" onClick={() => setOrder(order === "asc" ? "desc" : "asc")}>{order === "asc" ? "Ascending" : "Descending"}</button>
+      </section>
+      <p className="account-result-count">{total} account{total === 1 ? "" : "s"} found</p>
       <div className="data-table staff-table">
         {staff.length ? (
           staff.map((member) => (
@@ -148,6 +166,7 @@ export function StaffAccounts({ user }) {
           <div className="empty">No staff accounts yet.</div>
         )}
       </div>
+      <div className="pagination account-pagination"><button disabled={page <= 1} onClick={() => setPage(page - 1)}><ChevronLeft /> Previous</button><span>Page {page} of {pages}</span><button disabled={page >= pages} onClick={() => setPage(page + 1)}>Next <ChevronRight /></button></div>
       {open && (
         <AccountModal
           roles={user.role === "superadmin"

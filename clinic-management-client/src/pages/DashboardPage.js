@@ -38,6 +38,11 @@ export default function Dashboard({ user, items, onAdd, loading }) {
     );
   }
   const doctor = user.role === "doctor";
+  // The API already scopes a doctor's appointment query. Keep a UI-level
+  // guard too, so an unrelated appointment can never leak into My dashboard.
+  const visibleAppointments = doctor
+    ? items.filter((appointment) => appointment.doctor === user.name)
+    : items;
   return (
     <div className={`page ${doctor ? "doctor-dashboard" : "admin-dashboard"}`}>
       <section className="welcome">
@@ -109,7 +114,7 @@ export default function Dashboard({ user, items, onAdd, loading }) {
         </article>
       </section>
       <section className="content-grid dashboard-records">
-        <AppointmentList items={items} loading={loading} />
+        <AppointmentList items={visibleAppointments} loading={loading} />
         <aside className="right-column">
           <article className="mini-card">
             <div className="card-head">
