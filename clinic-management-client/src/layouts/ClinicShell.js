@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { Navigate, NavLink, Route, Routes } from "react-router-dom";
-import { Activity, Bell, CalendarDays, ChevronLeft, ChevronRight, ClipboardPlus, DollarSign, HeartPulse, LayoutDashboard, LogOut, Menu, Search, Settings, Stethoscope, UserRound, Users, X } from "lucide-react";
+import { Activity, Bell, CalendarDays, ChevronLeft, ChevronRight, ClipboardPlus, DollarSign, HeartPulse, LayoutDashboard, LogOut, Menu, Search, UserRound, Users, X } from "lucide-react";
 import { useAuth } from "../AuthContext";
 import api from "../api";
 import { initials } from "../utils/clinic";
 import Dashboard from "../pages/DashboardPage";
 import ProfilePage from "../pages/ProfilePage";
-import SettingsPage from "../pages/SettingsPage";
 import { Appointments, AppointmentModal } from "../features/appointments/AppointmentComponents";
-import { Doctors, StaffAccounts } from "../features/staff/StaffPages";
+import { StaffAccounts } from "../features/staff/StaffPages";
 import { BillingPage } from "../OperationsPages";
 import { DocumentsPage, NotificationsPage, PrescriptionsPage, QueuePage } from "../WorkflowPages";
 import { PatientsPage, RecordsPage } from "../DataPages";
@@ -166,21 +165,11 @@ export default function ClinicShell() {
         </button>
         <nav>
           <p>
-            {isSuper
-              ? "System administration"
-              : isAdmin
-                ? "Administration"
-                : role === "billing"
-                  ? "Financial workspace"
-                    : "Clinical workspace"}
+            {isSuper ? "System administration" : role === "billing" ? "Financial workspace" : "Clinical workspace"}
           </p>
           {!isSuper && <NavLink to="/dashboard" data-tooltip="Dashboard" aria-label="Dashboard">
             <LayoutDashboard />{" "}
-            {isSuper
-              ? "System overview"
-              : isAdmin
-                ? "Clinic overview"
-                : "My dashboard"}
+            My dashboard
           </NavLink>}
           {appointmentAccess && <NavLink to="/appointments" data-tooltip="Appointments" aria-label="Appointments">
             <CalendarDays /> {role === "doctor" ? "My appointments" : "Appointments"}{" "}
@@ -192,11 +181,6 @@ export default function ClinicShell() {
           <NavLink to="/patients" data-tooltip="Patient Records" aria-label="Patient Records">
             <Users /> Patient Records
           </NavLink>
-          {isAdmin && (
-            <NavLink to="/doctors" data-tooltip="Doctors" aria-label="Doctors">
-              <Stethoscope /> Doctors
-            </NavLink>
-          )}
           {staffAccess && (
             <NavLink to="/staff" data-tooltip="Staff accounts" aria-label="Staff accounts">
               <Users /> Staff accounts
@@ -218,11 +202,6 @@ export default function ClinicShell() {
           <NavLink to="/profile" data-tooltip="Profile" aria-label="Profile">
             <UserRound /> Profile
           </NavLink>
-          {isAdmin && (
-            <NavLink to="/settings" data-tooltip="Settings" aria-label="Settings">
-              <Settings /> Settings
-            </NavLink>
-          )}
         </nav>
         <button className="logout" data-tooltip="Sign out" onClick={logout}>
           <LogOut /> Sign out
@@ -241,11 +220,7 @@ export default function ClinicShell() {
                 setQuery(e.target.value);
                 setPage(1);
               }}
-              placeholder={
-                isAdmin
-                  ? "Search clinic appointments..."
-                  : "Search my appointments..."
-              }
+              placeholder="Search appointments..."
             />
           </div>
           <div className="role-badge">{roleLabels[role] || role}</div>
@@ -331,9 +306,6 @@ export default function ClinicShell() {
             path="/patients"
             element={<PatientsPage />}
           />
-          {isAdmin && (
-            <Route path="/doctors" element={<Doctors user={user} />} />
-          )}{" "}
           {staffAccess && <Route path="/staff" element={<StaffAccounts user={user} />} />}
           {recordAccess && <Route
             path="/records"
@@ -346,12 +318,6 @@ export default function ClinicShell() {
           {prescriptionAccess && <Route path="/prescriptions" element={<PrescriptionsPage />} />}
           {documentAccess && <Route path="/documents" element={<DocumentsPage />} />}
           <Route path="/notifications" element={<NotificationsPage />} />
-          {isAdmin && (
-            <Route
-              path="/settings"
-              element={<SettingsPage />}
-            />
-          )}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

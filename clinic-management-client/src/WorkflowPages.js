@@ -8,7 +8,6 @@ import { noticeDialog, textDialog } from './components/common/AppDialogs';
 const name = patient => patient ? `${patient.firstName} ${patient.lastName}` : 'Patient';
 const date = value => value ? new Date(value).toLocaleString() : '—';
 const dayKey = value => new Date(value).toLocaleDateString('en-CA');
-const roleIn = (user, roles) => roles.includes(user.role);
 const PageHead = ({ number, label, title, italic, action }) => <section className="subhero workflow-hero"><div className="eyebrow"><span>{number}</span>{label}</div><h1>{title},<br/><em>{italic}.</em></h1>{action}</section>;
 const Modal = ({ title, onClose, children, compact = false }) => createPortal(<div className="modal-backdrop"><div className={`modal workflow-modal${compact ? ' compact-workflow-modal' : ''}`}><button className="modal-x" onClick={onClose}><X/></button><div className="eyebrow">ClaraCare workflow</div><h2>{title}</h2>{children}</div></div>, document.body);
 
