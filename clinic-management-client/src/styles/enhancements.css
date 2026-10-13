@@ -705,5 +705,9 @@ header {
 }
 
 .billing-table td button:hover { background: var(--sage, #287e74); }
+
+.discount-breakdown { display:grid; gap:6px; margin:16px 0; padding:14px 16px; border:1px solid var(--line); background:var(--paper); }
+.discount-breakdown b { color:var(--sage-dark); }
+.discount-breakdown strong { font-size:1.05rem; }
 .status.unpaid { background: #fff1cf; color: #805a00; }
 .status.paid { background: #dbf5e4; color: #17633b; }
