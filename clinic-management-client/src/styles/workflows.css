@@ -111,6 +111,25 @@
   padding: 10px 16px;
 }
 
+/* Expected-appointment actions inherit the generic transparent card-button
+   rule, so explicitly restore their primary/secondary appearance. */
+.compact-cards article .queue-actions {
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+}
+
+.compact-cards article .queue-actions .primary {
+  border-color: var(--sage-dark);
+  background: var(--sage-dark);
+  color: #fff;
+}
+
+.compact-cards article .queue-actions .primary:hover {
+  background: var(--sage);
+  border-color: var(--sage);
+}
+
 .queue-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
