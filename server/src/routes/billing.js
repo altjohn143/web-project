@@ -20,7 +20,7 @@ const readAccess = async (req, res, next) => {
   next();
 };
 const rules = [
-  body('patient').isMongoId(), body('description').trim().isLength({ min: 2, max: 300 }),
+  body('patient').optional({ checkFalsy: true }).isMongoId(), body('description').trim().isLength({ min: 2, max: 300 }),
   body('amount').isFloat({ min: 0.01 }).toFloat(), body('amountPaid').optional().isFloat({ min: 0 }).toFloat(),
   body('dueDate').isISO8601().toDate(), body('discountType').optional().isIn(['None', 'Senior Citizen', 'PWD']),
   body('paymentMethod').optional({ checkFalsy: true }).isIn(['Cash', 'Card', 'GCash', 'Bank transfer', 'Other']),
@@ -51,6 +51,7 @@ router.get('/', readAccess, async (req, res, next) => { try {
 
 router.post('/', access, rules, valid, async (req, res, next) => { try {
   if (req.actor.role === 'superadmin') return res.status(403).json({ message: 'Superadmin billing access is view-only.' });
+  if (!req.body.patient) return res.status(422).json({ message: 'Select a patient before creating a billing record.' });
   const { subtotal, discountAmount, amount } = totals(req.body);
   const invoice = await Invoice.create({ patient: req.body.patient, description: req.body.description, dueDate: req.body.dueDate, discountType: req.body.discountType || 'None', paymentMethod: req.body.paymentMethod || 'Cash', subtotal, discountAmount, amount, amountPaid: 0, status: 'Unpaid', createdBy: req.user.id });
   res.status(201).json(publicInvoice(invoice));
@@ -61,6 +62,7 @@ router.put('/:id', access, rules, valid, async (req, res, next) => { try {
   const existing = await Invoice.findById(req.params.id);
   if (!existing) return res.status(404).json({ message: 'Invoice not found' });
   if (existing.status === 'Paid') return res.status(422).json({ message: 'Paid billing records are final and cannot be edited.' });
+  if (!req.body.patient) req.body.patient = String(existing.patient);
   if (String(existing.patient) !== String(req.body.patient)) return res.status(422).json({ message: 'The patient on an existing billing record cannot be changed.' });
   const { subtotal, discountAmount, amount } = totals(req.body), paid = Number(req.body.amountPaid);
   if (!Number.isFinite(paid) || paid <= 0) return res.status(422).json({ message: 'Amount paid must be greater than 0.' });
