@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Bell, ClipboardCheck, HeartPulse, Printer, RefreshCw, Stethoscope, Trash2, Users, X } from 'lucide-react';
+import { Bell, ClipboardCheck, HeartPulse, Printer, RefreshCw, Stethoscope, Trash2, X } from 'lucide-react';
 import api from './api';
 import { useAuth } from './AuthContext';
 import { noticeDialog, textDialog } from './components/common/AppDialogs';
