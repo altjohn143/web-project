@@ -99,7 +99,7 @@ function AnalogTimePicker({ value, onChange }) {
   </fieldset>;
 }
 
-function TimePickerModal({ value, onChange, onClose }) {
+export function TimePickerModal({ value, onChange, onClose }) {
   return <div className="time-picker-backdrop" role="presentation" onMouseDown={event => event.target === event.currentTarget && onClose()}>
     <section className="time-picker-modal" role="dialog" aria-modal="true" aria-labelledby="time-picker-title">
       <div className="time-picker-modal-head"><div><p className="eyebrow">APPOINTMENT TIME</p><h2 id="time-picker-title">Choose your preferred time</h2></div><button type="button" className="time-picker-close" aria-label="Close time picker" onClick={onClose}><X /></button></div>

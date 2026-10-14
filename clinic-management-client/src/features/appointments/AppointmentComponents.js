@@ -4,6 +4,7 @@ import { NavLink } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Eye, Pencil, Trash2, X } from "lucide-react";
 import api from "../../api";
 import { appointmentBlank as blank, initials } from "../../utils/clinic";
+import { TimePickerModal } from "../../pages/PatientAppointmentPage";
 
 const isOfficeHours = (value) => {
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value || "")) return false;
@@ -16,6 +17,11 @@ const isOfficeHours = (value) => {
     && minute >= 0 && minute < 60 && (hour < 17 || minute === 0);
 };
 const onlyNameCharacters = value => value.replace(/[^\p{L}\p{M}' -]/gu, '');
+const formatAppointmentTime = value => {
+  if (!value) return 'Choose a time';
+  const [hour, minute] = value.split(':').map(Number);
+  return (hour % 12 || 12) + ':' + String(minute).padStart(2, '0') + (hour < 12 ? ' AM' : ' PM');
+};
 const appointmentMinimum = () => {
   const now = new Date();
   const minimum = new Date(now);
@@ -339,7 +345,8 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
   const [form, setForm] = useState(initial),
     [doctors, setDoctors] = useState([]),
     [error, setError] = useState(""),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [timePickerOpen, setTimePickerOpen] = useState(false);
   useEffect(() => {
     api
       .get("/doctors")
@@ -354,6 +361,10 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
       .catch(() => setError("Unable to load doctors from the database."));
   }, [item, doctorUser, user.name]);
   const change = (field, value) => setForm((f) => ({ ...f, [field]: value }));
+  const appointmentDate = form.date ? form.date.slice(0, 10) : '';
+  const appointmentTime = form.date && form.date.includes('T') ? form.date.slice(11, 16) : '';
+  const changeDate = value => change('date', value ? value + 'T' + (appointmentTime || '08:00') : '');
+  const changeTime = value => change('date', appointmentDate ? appointmentDate + 'T' + value : '');
   const submit = async (e) => {
     e.preventDefault();
     setError("");
@@ -473,17 +484,20 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
         </label>
         <div className="form-row">
           <label>
-            Date and time
+            Appointment date
             <input
-              type="datetime-local"
-              value={form.date}
-              onChange={(e) => change("date", e.target.value)}
-              min={appointmentMinimum()}
-              step="1800"
+              type="date"
+              value={appointmentDate}
+              onChange={(e) => changeDate(e.target.value)}
+              min={appointmentMinimum().slice(0, 10)}
               required
             />
-            <small>Weekdays only, 8:00 AM–5:00 PM.</small>
           </label>
+          <div className="time-picker-summary">
+            <span>Appointment time <small>Clinic hours: 8:00 AM–5:00 PM</small></span>
+            <button type="button" onClick={() => setTimePickerOpen(true)}>{formatAppointmentTime(appointmentTime)}</button>
+          </div>
+        </div>
           <label>
             Doctor
             <select
@@ -503,7 +517,6 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
               ))}
             </select>
           </label>
-        </div>
         {doctorUser && item && item.status !== "Cancelled" && (
           <section className="completion-fields">
             <p>
@@ -544,6 +557,7 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
               : "Add pending appointment"}
         </button>
       </form>
+      {timePickerOpen && <TimePickerModal value={appointmentTime} onChange={changeTime} onClose={() => setTimePickerOpen(false)} />}
     </div>,
     document.body,
   );
