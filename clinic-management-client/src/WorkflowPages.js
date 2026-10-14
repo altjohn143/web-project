@@ -53,6 +53,11 @@ function VitalsModal({ item, onClose, onSaved }) {
   const [rescheduleAt, setRescheduleAt] = useState('');
   const [showReschedule, setShowReschedule] = useState(false);
   const update = (key, value) => setForm(current => ({ ...current, [key]: value }));
+  const formatBloodPressure = value => {
+    const cleaned = value.replace(/[^0-9/]/g, '');
+    const [systolic = '', diastolic = ''] = cleaned.split('/');
+    return systolic.slice(0, 3) + (cleaned.includes('/') ? '/' + diastolic.slice(0, 3) : '');
+  };
   const saveVitals = () => api.put(`/workflows/queue/${item._id}/vitals`, form);
   const isOfficeHours = value => {
     if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value || '')) return false;
@@ -82,7 +87,7 @@ function VitalsModal({ item, onClose, onSaved }) {
   };
   return <Modal title={`Nursing assessment — ${name(item.patient)}`} onClose={onClose}><form onSubmit={submit}>
     <p className="form-note">Save the vitals, then the system checks the requested doctor. If no doctor for that care field is available, use the reschedule option below.</p>
-    <div className="form-row"><label>Temperature °C<input type="number" min="30" max="45" step="0.1" value={form.temperature} onChange={e => update('temperature', e.target.value)} required /></label><label>Blood pressure<input placeholder="120/80" pattern="[0-9]{2,3}/[0-9]{2,3}" title="Use systolic/diastolic with a higher systolic value, for example 120/80" value={form.bloodPressure} onChange={e => update('bloodPressure', e.target.value)} required /></label></div>
+    <div className="form-row"><label>Temperature °C<input type="number" min="30" max="45" step="0.1" value={form.temperature} onChange={e => update('temperature', e.target.value)} required /></label><label>Blood pressure<input inputMode="numeric" placeholder="120/80" pattern="[0-9]{2,3}/[0-9]{2,3}" title="Use systolic/diastolic with a higher systolic value, for example 120/80" value={form.bloodPressure} onChange={e => update('bloodPressure', formatBloodPressure(e.target.value))} required /></label></div>
     <div className="form-row"><label>Pulse (bpm)<input type="number" min="30" max="250" value={form.pulse} onChange={e => update('pulse', e.target.value)} required /></label><label>Oxygen level (%)<input type="number" min="50" max="100" value={form.oxygenLevel} onChange={e => update('oxygenLevel', e.target.value)} required /></label></div>
     <div className="form-row"><label>Weight (kg)<input type="number" min="1" max="500" step="0.1" value={form.weight} onChange={e => update('weight', e.target.value)} /></label><label>Height (cm)<input type="number" min="30" max="300" step="0.1" value={form.height} onChange={e => update('height', e.target.value)} /></label></div>
     <label>Known allergies<textarea maxLength="1000" value={form.allergies} onChange={e => update('allergies', e.target.value)} /></label>
