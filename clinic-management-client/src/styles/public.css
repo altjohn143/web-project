@@ -787,7 +787,7 @@
   align-items: start;
 }
 
-.appointment-page .time-slot-picker {
+.time-slot-picker {
   width: min(100%, 330px);
   min-width: 0;
   margin: 10px auto 0;
@@ -795,7 +795,7 @@
   border: 0;
 }
 
-.appointment-page .time-slot-picker legend {
+.time-slot-picker legend {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -807,13 +807,13 @@
   font-weight: 600;
 }
 
-.appointment-page .time-slot-picker legend small {
+.time-slot-picker legend small {
   color: #0f6f74;
   font-size: 13px;
   font-weight: 400;
 }
 
-.appointment-page .time-picker-summary {
+.time-picker-summary {
   grid-column: 1 / -1;
   display: flex;
   align-items: center;
@@ -825,7 +825,7 @@
   background: rgba(255, 255, 255, 0.52);
 }
 
-.appointment-page .time-picker-summary span {
+.time-picker-summary span {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -834,13 +834,13 @@
   font-weight: 700;
 }
 
-.appointment-page .time-picker-summary small {
+.time-picker-summary small {
   color: #0f6f74;
   font-size: 12px;
   font-weight: 400;
 }
 
-.appointment-page .time-picker-summary button {
+.time-picker-summary button {
   min-height: 40px;
   padding: 0 17px;
   border: 0;
@@ -852,8 +852,8 @@
   transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
-.appointment-page .time-picker-summary button:hover,
-.appointment-page .time-picker-summary button:focus-visible {
+.time-picker-summary button:hover,
+.time-picker-summary button:focus-visible {
   box-shadow: 0 8px 18px rgba(7, 132, 216, 0.26);
   outline: none;
   transform: translateY(-2px);
@@ -1011,14 +1011,14 @@
   width: 100%;
 }
 
-.appointment-page .clock-instruction {
+.clock-instruction {
   margin: 7px 0 6px;
   color: #0f6f74;
   font-size: 11px;
   line-height: 1.35;
 }
 
-.appointment-page .clock-selection {
+.clock-selection {
   width: fit-content;
   margin: 0 auto 4px;
   padding: 5px 11px;
@@ -1028,7 +1028,7 @@
   font: 800 12px/1 "DM Sans";
 }
 
-.appointment-page .time-clock {
+.time-clock {
   display: block;
   width: min(100%, 218px);
   height: auto;
@@ -1036,87 +1036,87 @@
   touch-action: none;
 }
 
-.appointment-page .clock-face {
+.clock-face {
   fill: rgba(255, 255, 255, 0.78);
   stroke: rgba(15, 111, 116, 0.28);
   stroke-width: 1.5;
 }
 
-.appointment-page .clock-tick {
+.clock-tick {
   stroke: rgba(15, 111, 116, 0.34);
   stroke-width: 1.4;
 }
 
-.appointment-page .clock-tick.major {
+.clock-tick.major {
   stroke: #078985;
   stroke-width: 2.5;
 }
 
-.appointment-page .clock-number {
+.clock-number {
   fill: #075b64;
   font: 700 13px "DM Sans";
   pointer-events: none;
 }
 
-.appointment-page .clock-hand {
+.clock-hand {
   stroke-linecap: round;
   transition: stroke 140ms ease;
 }
 
-.appointment-page .hour-hand {
+.hour-hand {
   stroke: #073f79;
   stroke-width: 8;
 }
 
-.appointment-page .minute-hand {
+.minute-hand {
   stroke: #0aa69c;
   stroke-width: 4;
 }
 
-.appointment-page .clock-hand.dragging {
+.clock-hand.dragging {
   stroke: #0784d8;
 }
 
-.appointment-page .clock-drag-zone {
+.clock-drag-zone {
   stroke: transparent;
   stroke-width: 26;
   cursor: grab;
   pointer-events: stroke;
 }
 
-.appointment-page .clock-drag-zone:active {
+.clock-drag-zone:active {
   cursor: grabbing;
 }
 
-.appointment-page .clock-center {
+.clock-center {
   fill: #073f79;
   stroke: #fff;
   stroke-width: 2;
 }
 
-.appointment-page .clock-handle {
+.clock-handle {
   cursor: grab;
   outline: none;
   transition: r 140ms ease, filter 140ms ease;
 }
 
-.appointment-page .clock-handle:active {
+.clock-handle:active {
   cursor: grabbing;
 }
 
-.appointment-page .hour-handle {
+.hour-handle {
   fill: #073f79;
   stroke: #fff;
   stroke-width: 3;
 }
 
-.appointment-page .minute-handle {
+.minute-handle {
   fill: #0aa69c;
   stroke: #fff;
   stroke-width: 3;
 }
 
-.appointment-page .clock-handle:focus-visible {
+.clock-handle:focus-visible {
   filter: drop-shadow(0 0 5px rgba(7, 132, 216, 0.7));
 }
 
