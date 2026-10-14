@@ -9,6 +9,18 @@ import useSilentRefresh from './hooks/useSilentRefresh';
 const name = patient => patient ? `${patient.firstName} ${patient.lastName}` : 'Patient';
 const date = value => value ? new Date(value).toLocaleString() : '—';
 const dayKey = value => new Date(value).toLocaleDateString('en-CA');
+const appointmentMinimum = () => {
+  const now = new Date(), minimum = new Date(now);
+  minimum.setSeconds(0, 0);
+  minimum.setHours(8, 0, 0, 0);
+  if (now > minimum) {
+    const closing = new Date(minimum); closing.setHours(17, 0, 0, 0);
+    if (now >= closing) minimum.setDate(minimum.getDate() + 1);
+    else minimum.setMinutes(Math.ceil((now - minimum) / 60000 / 30) * 30);
+  }
+  const pad = value => String(value).padStart(2, '0');
+  return minimum.getFullYear() + '-' + pad(minimum.getMonth() + 1) + '-' + pad(minimum.getDate()) + 'T' + pad(minimum.getHours()) + ':' + pad(minimum.getMinutes());
+};
 const PageHead = ({ number, label, title, italic, action }) => <section className="subhero workflow-hero"><div className="eyebrow"><span>{number}</span>{label}</div><h1>{title},<br/><em>{italic}.</em></h1>{action}</section>;
 const Modal = ({ title, onClose, children, compact = false }) => createPortal(<div className="modal-backdrop"><div className={`modal workflow-modal${compact ? ' compact-workflow-modal' : ''}`}><button className="modal-x" onClick={onClose}><X/></button><div className="eyebrow">ClaraCare workflow</div><h2>{title}</h2>{children}</div></div>, document.body);
 
@@ -78,7 +90,7 @@ function VitalsModal({ item, onClose, onSaved }) {
     {error && <div className="form-error">{error}</div>}
     <button className="primary full">Save vitals & confirm doctor availability</button>
     {!showReschedule && <button type="button" className="secondary full" onClick={() => setShowReschedule(true)}>No doctor available for this field</button>}
-    {showReschedule && <section className="reschedule-panel"><b>No doctor available for this field?</b><p>Choose the next available appointment time. Vitals will be saved, reception will be notified, and the patient will not enter a doctor queue.</p><label>New appointment date and time<input type="datetime-local" min={new Date().toISOString().slice(0, 16)} step="1800" value={rescheduleAt} onChange={e => setRescheduleAt(e.target.value)} required /><small>Weekdays only, 8:00 AM–5:00 PM.</small></label><button type="button" className="secondary full" disabled={!rescheduleAt} onClick={reschedule}>Save vitals & reschedule appointment</button></section>}
+    {showReschedule && <section className="reschedule-panel"><b>No doctor available for this field?</b><p>Choose the next available appointment time. Vitals will be saved, reception will be notified, and the patient will not enter a doctor queue.</p><label>New appointment date and time<input type="datetime-local" min={appointmentMinimum()} step="1800" value={rescheduleAt} onChange={e => setRescheduleAt(e.target.value)} required /><small>Weekdays only, 8:00 AM–5:00 PM.</small></label><button type="button" className="secondary full" disabled={!rescheduleAt} onClick={reschedule}>Save vitals & reschedule appointment</button></section>}
   </form></Modal>;
 }
 

@@ -16,6 +16,23 @@ const isOfficeHours = (value) => {
     && minute >= 0 && minute < 60 && (hour < 17 || minute === 0);
 };
 const onlyNameCharacters = value => value.replace(/[^\p{L}\p{M}' -]/gu, '');
+const appointmentMinimum = () => {
+  const now = new Date();
+  const minimum = new Date(now);
+  minimum.setSeconds(0, 0);
+  minimum.setHours(8, 0, 0, 0);
+  if (now > minimum) {
+    const closing = new Date(minimum);
+    closing.setHours(17, 0, 0, 0);
+    if (now >= closing) minimum.setDate(minimum.getDate() + 1);
+    else {
+      const minutesSinceOpening = (now - minimum) / 60000;
+      minimum.setMinutes(Math.ceil(minutesSinceOpening / 30) * 30);
+    }
+  }
+  const pad = value => String(value).padStart(2, "0");
+  return minimum.getFullYear() + "-" + pad(minimum.getMonth() + 1) + "-" + pad(minimum.getDate()) + "T" + pad(minimum.getHours()) + ":" + pad(minimum.getMinutes());
+};
 
 export function AppointmentList({ items, loading }) {
   return (
@@ -461,7 +478,7 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
               type="datetime-local"
               value={form.date}
               onChange={(e) => change("date", e.target.value)}
-              min={new Date().toISOString().slice(0, 16)}
+              min={appointmentMinimum()}
               step="1800"
               required
             />
