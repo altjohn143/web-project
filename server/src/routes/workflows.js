@@ -9,6 +9,7 @@ const MedicalRecord = require('../models/MedicalRecord');
 const Invoice = require('../models/Invoice');
 const Prescription = require('../models/Prescription');
 const Notification = require('../models/Notification');
+const { isDuringOfficeHours, officeHoursMessage } = require('../utils/appointmentHours');
 router.use(auth);
 const actor = req => User.findById(req.user.id).select('name role');
 const dayRange = value => { const start = value ? new Date(value) : new Date(); start.setHours(0, 0, 0, 0); const end = new Date(start); end.setDate(end.getDate() + 1); return { start, end }; };
@@ -19,7 +20,15 @@ const valid = (req, res, next) => {
 };
 const vitalsRules = [
   body('temperature').isFloat({ min: 30, max: 45 }).toFloat().withMessage('Temperature must be between 30 and 45 °C.'),
-  body('bloodPressure').trim().matches(/^\d{2,3}\/\d{2,3}$/).withMessage('Enter blood pressure as systolic/diastolic, for example 120/80.'),
+  body('bloodPressure').trim().custom(value => {
+    const match = /^(\d{2,3})\/(\d{2,3})$/.exec(value);
+    if (!match) throw new Error('Enter blood pressure as systolic/diastolic, for example 120/80.');
+    const [, systolic, diastolic] = match.map(Number);
+    if (systolic < 70 || systolic > 250 || diastolic < 40 || diastolic > 150 || systolic <= diastolic) {
+      throw new Error('Enter a valid blood pressure with a higher systolic value, for example 120/80.');
+    }
+    return true;
+  }),
   body('pulse').isInt({ min: 30, max: 250 }).toInt().withMessage('Pulse must be between 30 and 250 bpm.'),
   body('oxygenLevel').isInt({ min: 50, max: 100 }).toInt().withMessage('Oxygen level must be between 50 and 100%.'),
   body('weight').optional({ checkFalsy: true }).isFloat({ min: 1, max: 500 }).toFloat(),
@@ -85,7 +94,7 @@ router.post('/queue/:id/confirm-doctor', async (req, res, next) => { try {
   res.json(await populateEncounter(Encounter.findById(item._id)));
 } catch (e) { next(e); } });
 
-router.put('/queue/:id/reschedule', [body('date').isISO8601().toDate().custom(value => value > new Date())], valid, async (req, res, next) => { try {
+router.put('/queue/:id/reschedule', [body('date').isISO8601().withMessage('Select a valid appointment date and time.').custom(isDuringOfficeHours).withMessage(officeHoursMessage).custom(value => new Date(value) > new Date()).withMessage('Appointment date and time must be in the future.').toDate()], valid, async (req, res, next) => { try {
   const user = await actor(req); if (user.role !== 'nurse') return res.status(403).json({ message: 'Nursing access required' });
   const item = await Encounter.findOne({ _id: req.params.id, status: 'Awaiting vitals' });
   if (!item?.vitals?.recordedAt) return res.status(422).json({ message: 'Record vitals before rescheduling this appointment.' });

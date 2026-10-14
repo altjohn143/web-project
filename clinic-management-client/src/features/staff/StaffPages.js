@@ -271,7 +271,9 @@ function AccountModal({ role, roles, item, onClose, onCreated }) {
           Full name
           <input
             value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            onChange={(e) => setForm({ ...form, name: e.target.value.replace(/[^\p{L}\p{M}' -]/gu, '') })}
+            pattern="[A-Za-zÀ-ÖØ-öø-ÿ' -]+"
+            title="Use letters, spaces, hyphens, or apostrophes only."
             minLength="2"
             required
           />

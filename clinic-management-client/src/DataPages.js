@@ -400,7 +400,12 @@ function DataModal({ type, item, blank, onClose, onSave }) {
       {label}
       <input
         value={form[key]}
-        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+        onChange={(e) => {
+          let value = e.target.value;
+          if (['firstName', 'lastName'].includes(key)) value = value.replace(/[^\p{L}\p{M}' -]/gu, '');
+          if (key === 'phone') value = value.replace(/\D/g, '').slice(0, 10);
+          setForm({ ...form, [key]: value });
+        }}
         required={props.required !== false}
         {...props}
       />
@@ -429,11 +434,11 @@ function DataModal({ type, item, blank, onClose, onSave }) {
         </h2>
         {type === "patients" ? (
           <>
-            {field("firstName", "First name")}
-            {field("lastName", "Last name")}
+            {field("firstName", "First name", { pattern: "[A-Za-zÀ-ÖØ-öø-ÿ' -]+", title: "Use letters, spaces, hyphens, or apostrophes only." })}
+            {field("lastName", "Last name", { pattern: "[A-Za-zÀ-ÖØ-öø-ÿ' -]+", title: "Use letters, spaces, hyphens, or apostrophes only." })}
             <div className="form-row">
               {field("email", "Email", { type: "email", required: false })}
-              {field("phone", "Phone")}
+              {field("phone", "Phone", { type: "tel", inputMode: "numeric", pattern: "[0-9]{10}", minLength: "10", maxLength: "10", title: "Enter exactly 10 digits using numbers only." })}
             </div>
             <div className="form-row">
               {field("birthDate", "Birth date", { type: "date" })}

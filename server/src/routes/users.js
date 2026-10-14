@@ -5,10 +5,11 @@ const auth = require('../middleware/auth');
 const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 const staffRoles = ['receptionist', 'doctor', 'nurse', 'billing'];
 const specialties = ['Family Physicians', 'General Practitioners (GPs)', 'Internal Medicine Physicians (Internists)', 'Pediatricians', 'Obstetrician/Gynecologists (OB-GYNs)'];
+const namePattern = /^[\p{L}][\p{L}\p{M}' -]*$/u;
 router.use(auth);
 const validate = (req, res, next) => { const errors = validationResult(req); return errors.isEmpty() ? next() : res.status(422).json({ errors: errors.array() }); };
 const rules = [
-  body('name').trim().isLength({ min: 2, max: 80 }),
+  body('name').trim().isLength({ min: 2, max: 80 }).matches(namePattern).withMessage('Names may contain letters, spaces, hyphens, and apostrophes only.'),
   body('email').isEmail().normalizeEmail(),
   body('password').matches(strongPassword).withMessage('Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.'),
   body('role').isIn(staffRoles),
@@ -51,7 +52,7 @@ router.post('/', rules, validate, async (req, res, next) => {
   } catch (error) { next(error); }
 });
 const updateRules = [
-  body('name').trim().isLength({ min: 2, max: 80 }),
+  body('name').trim().isLength({ min: 2, max: 80 }).matches(namePattern).withMessage('Names may contain letters, spaces, hyphens, and apostrophes only.'),
   body('email').isEmail().normalizeEmail(),
   body('specialty').optional().trim(),
   body('password').optional({ checkFalsy: true }).matches(strongPassword).withMessage('Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.'),

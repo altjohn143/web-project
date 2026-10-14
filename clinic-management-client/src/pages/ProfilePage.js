@@ -79,7 +79,9 @@ export default function ProfilePage() {
             Full name
             <input
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value.replace(/[^\p{L}\p{M}' -]/gu, ""))}
+              pattern="[A-Za-zÀ-ÖØ-öø-ÿ' -]+"
+              title="Use letters, spaces, hyphens, or apostrophes only."
               minLength="2"
               required
             />

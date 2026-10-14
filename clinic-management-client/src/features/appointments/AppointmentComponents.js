@@ -5,6 +5,18 @@ import { ChevronLeft, ChevronRight, Eye, Pencil, Trash2, X } from "lucide-react"
 import api from "../../api";
 import { appointmentBlank as blank, initials } from "../../utils/clinic";
 
+const isOfficeHours = (value) => {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value || "")) return false;
+  const [datePart, timePart] = value.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = timePart.split(":").map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+    && date.getDay() >= 1 && date.getDay() <= 5 && hour >= 8 && hour <= 17
+    && minute >= 0 && minute < 60 && (hour < 17 || minute === 0);
+};
+const onlyNameCharacters = value => value.replace(/[^\p{L}\p{M}' -]/gu, '');
+
 export function AppointmentList({ items, loading }) {
   return (
     <article className="appointments-card">
@@ -328,6 +340,10 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
   const submit = async (e) => {
     e.preventDefault();
     setError("");
+    if (!isOfficeHours(form.date)) {
+      setError("Appointments are available Monday through Friday, from 8:00 AM to 5:00 PM.");
+      return;
+    }
     try {
       setBusy(true);
       await onSave(form);
@@ -365,7 +381,9 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
             Patient name
             <input
               value={form.patient}
-              onChange={(e) => change("patient", e.target.value)}
+              onChange={(e) => change("patient", onlyNameCharacters(e.target.value))}
+              pattern="[A-Za-zÀ-ÖØ-öø-ÿ' -]+"
+              title="Use letters, spaces, hyphens, or apostrophes only."
               minLength="2"
               required
             />
@@ -384,9 +402,13 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
             Phone
             <input
               value={form.phone}
-              onChange={(e) => change("phone", e.target.value)}
-              minLength="7"
-              maxLength="25"
+              onChange={(e) => change("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
+              type="tel"
+              inputMode="numeric"
+              pattern="[0-9]{10}"
+              title="Enter exactly 10 digits using numbers only."
+              minLength="10"
+              maxLength="10"
               required
             />
           </label>
@@ -440,8 +462,10 @@ export function AppointmentModal({ item, user, onClose, onSave }) {
               value={form.date}
               onChange={(e) => change("date", e.target.value)}
               min={new Date().toISOString().slice(0, 16)}
+              step="1800"
               required
             />
+            <small>Weekdays only, 8:00 AM–5:00 PM.</small>
           </label>
           <label>
             Doctor

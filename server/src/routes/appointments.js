@@ -9,6 +9,8 @@ const auth = require('../middleware/auth');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
 const { sendAppointmentOtp, sendAppointmentConfirmation } = require('../services/email');
+const { isDuringOfficeHours, officeHoursMessage } = require('../utils/appointmentHours');
+const namePattern = /^[\p{L}][\p{L}\p{M}' -]*$/u;
 
 const careSpecialties = {
   'General medicine': ['Family Physicians', 'General Practitioners (GPs)'],
@@ -18,26 +20,15 @@ const careSpecialties = {
 };
 const publicCareTypes = Object.keys(careSpecialties);
 
-function isDuringOfficeHours(value) {
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value)) return false;
-  const [datePart, timePart] = value.split('T');
-  const [year, month, day] = datePart.split('-').map(Number);
-  const [hour, minute] = timePart.slice(0, 5).split(':').map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day));
-  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
-    && date.getUTCDay() >= 1 && date.getUTCDay() <= 5 && hour >= 8 && hour <= 17
-    && minute >= 0 && minute < 60 && (hour < 17 || minute === 0);
-}
-
 const patientName = body => [body.firstName, body.middleName, body.lastName]
   .filter(Boolean).map(value => value.trim()).filter(Boolean).join(' ');
 
 const rules = [
-  body('patient').trim().isLength({ min: 2, max: 100 }),
+  body('patient').trim().isLength({ min: 2, max: 100 }).matches(namePattern).withMessage('Patient names may contain letters, spaces, hyphens, and apostrophes only.'),
   body('reason').trim().isLength({ min: 2, max: 200 }),
   body('doctor').trim().notEmpty(),
-  body('date').isISO8601().withMessage('Select a valid appointment date and time.').custom(value => new Date(value).getTime() > Date.now()).withMessage('Appointment date and time must be in the future.').toDate(),
-  body('phone').trim().isLength({ min: 7, max: 25 }).withMessage('Enter a valid contact number.'),
+  body('date').isISO8601().withMessage('Select a valid appointment date and time.').custom(isDuringOfficeHours).withMessage(officeHoursMessage).custom(value => new Date(value).getTime() > Date.now()).withMessage('Appointment date and time must be in the future.').toDate(),
+  body('phone').trim().matches(/^\d{10}$/).withMessage('Enter a 10-digit phone number using numbers only.'),
   body('email').optional({ checkFalsy: true }).isEmail().normalizeEmail(),
   body('birthDate').optional({ checkFalsy: true }).isISO8601().toDate(),
   body('sex').optional({ checkFalsy: true }).isIn(['Female', 'Male', 'Other']),
@@ -49,21 +40,15 @@ const valid = (req, res, next) => {
 };
 const currentUser = req => User.findById(req.user.id).select('name role');
 const otpRules = [
-  body('firstName').trim().isLength({ min: 2, max: 50 }).withMessage('Enter a first name with at least 2 characters.'),
-  body('middleName').optional({ checkFalsy: true }).trim().isLength({ max: 50 }),
-  body('lastName').trim().isLength({ min: 2, max: 50 }).withMessage('Enter a last name with at least 2 characters.'),
+  body('firstName').trim().isLength({ min: 2, max: 50 }).matches(namePattern).withMessage('First name may contain letters, spaces, hyphens, and apostrophes only.'),
+  body('middleName').optional({ checkFalsy: true }).trim().isLength({ max: 50 }).matches(namePattern).withMessage('Middle name may contain letters, spaces, hyphens, and apostrophes only.'),
+  body('lastName').trim().isLength({ min: 2, max: 50 }).matches(namePattern).withMessage('Last name may contain letters, spaces, hyphens, and apostrophes only.'),
   body('careType').isIn(publicCareTypes).withMessage('Select a type of care.'),
-  body('date').custom(isDuringOfficeHours).withMessage('Appointments are available Monday through Friday, from 8:00 AM to 5:00 PM.'),
+  body('date').custom(isDuringOfficeHours).withMessage(officeHoursMessage),
   body('email').isEmail().withMessage('Enter a valid email address, including @.').normalizeEmail(),
   body('country').matches(/^[A-Z]{2}$/).withMessage('Select a country code.'),
   body('countryCode').matches(/^\+\d{1,4}$/).withMessage('Select a valid country code.'),
-  body('phone').custom((phone, { req }) => {
-    const validPhone = req.body.country === 'PH' ? /^9\d{9}$/ : /^\d{7,15}$/;
-    if (!validPhone.test(phone)) throw new Error(req.body.country === 'PH'
-      ? 'Enter a 10-digit Philippine mobile number beginning with 9.'
-      : 'Enter a phone number containing 7 to 15 digits.');
-    return true;
-  }),
+  body('phone').matches(/^\d{10}$/).withMessage('Enter a 10-digit phone number using numbers only.'),
   body('birthDate').isISO8601().withMessage('Enter a valid birth date.').toDate(),
   body('sex').isIn(['Female', 'Male', 'Other']).withMessage('Select the patient’s sex.'),
   body('address').trim().isLength({ min: 5, max: 300 }).withMessage('Enter the patient’s address.'),

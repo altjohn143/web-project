@@ -42,6 +42,11 @@ function VitalsModal({ item, onClose, onSaved }) {
   const [showReschedule, setShowReschedule] = useState(false);
   const update = (key, value) => setForm(current => ({ ...current, [key]: value }));
   const saveVitals = () => api.put(`/workflows/queue/${item._id}/vitals`, form);
+  const isOfficeHours = value => {
+    if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value || '')) return false;
+    const [datePart, timePart] = value.split('T'), [year, month, day] = datePart.split('-').map(Number), [hour, minute] = timePart.split(':').map(Number), date = new Date(year, month - 1, day);
+    return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day && date.getDay() >= 1 && date.getDay() <= 5 && hour >= 8 && hour <= 17 && minute >= 0 && minute < 60 && (hour < 17 || minute === 0);
+  };
   const submit = async event => {
     event.preventDefault();
     try {
@@ -54,6 +59,7 @@ function VitalsModal({ item, onClose, onSaved }) {
     }
   };
   const reschedule = async () => {
+    if (!isOfficeHours(rescheduleAt)) { setError('Appointments are available Monday through Friday, from 8:00 AM to 5:00 PM.'); return; }
     try {
       await saveVitals();
       await api.put(`/workflows/queue/${item._id}/reschedule`, { date: rescheduleAt });
@@ -64,7 +70,7 @@ function VitalsModal({ item, onClose, onSaved }) {
   };
   return <Modal title={`Nursing assessment — ${name(item.patient)}`} onClose={onClose}><form onSubmit={submit}>
     <p className="form-note">Save the vitals, then the system checks the requested doctor. If no doctor for that care field is available, use the reschedule option below.</p>
-    <div className="form-row"><label>Temperature °C<input type="number" min="30" max="45" step="0.1" value={form.temperature} onChange={e => update('temperature', e.target.value)} required /></label><label>Blood pressure<input placeholder="120/80" pattern="[0-9]{2,3}/[0-9]{2,3}" title="Use systolic/diastolic, for example 120/80" value={form.bloodPressure} onChange={e => update('bloodPressure', e.target.value)} required /></label></div>
+    <div className="form-row"><label>Temperature °C<input type="number" min="30" max="45" step="0.1" value={form.temperature} onChange={e => update('temperature', e.target.value)} required /></label><label>Blood pressure<input placeholder="120/80" pattern="[0-9]{2,3}/[0-9]{2,3}" title="Use systolic/diastolic with a higher systolic value, for example 120/80" value={form.bloodPressure} onChange={e => update('bloodPressure', e.target.value)} required /></label></div>
     <div className="form-row"><label>Pulse (bpm)<input type="number" min="30" max="250" value={form.pulse} onChange={e => update('pulse', e.target.value)} required /></label><label>Oxygen level (%)<input type="number" min="50" max="100" value={form.oxygenLevel} onChange={e => update('oxygenLevel', e.target.value)} required /></label></div>
     <div className="form-row"><label>Weight (kg)<input type="number" min="1" max="500" step="0.1" value={form.weight} onChange={e => update('weight', e.target.value)} /></label><label>Height (cm)<input type="number" min="30" max="300" step="0.1" value={form.height} onChange={e => update('height', e.target.value)} /></label></div>
     <label>Known allergies<textarea maxLength="1000" value={form.allergies} onChange={e => update('allergies', e.target.value)} /></label>
@@ -72,7 +78,7 @@ function VitalsModal({ item, onClose, onSaved }) {
     {error && <div className="form-error">{error}</div>}
     <button className="primary full">Save vitals & confirm doctor availability</button>
     {!showReschedule && <button type="button" className="secondary full" onClick={() => setShowReschedule(true)}>No doctor available for this field</button>}
-    {showReschedule && <section className="reschedule-panel"><b>No doctor available for this field?</b><p>Choose the next available appointment time. Vitals will be saved, reception will be notified, and the patient will not enter a doctor queue.</p><label>New appointment date and time<input type="datetime-local" value={rescheduleAt} onChange={e => setRescheduleAt(e.target.value)} /></label><button type="button" className="secondary full" disabled={!rescheduleAt} onClick={reschedule}>Save vitals & reschedule appointment</button></section>}
+    {showReschedule && <section className="reschedule-panel"><b>No doctor available for this field?</b><p>Choose the next available appointment time. Vitals will be saved, reception will be notified, and the patient will not enter a doctor queue.</p><label>New appointment date and time<input type="datetime-local" min={new Date().toISOString().slice(0, 16)} step="1800" value={rescheduleAt} onChange={e => setRescheduleAt(e.target.value)} required /><small>Weekdays only, 8:00 AM–5:00 PM.</small></label><button type="button" className="secondary full" disabled={!rescheduleAt} onClick={reschedule}>Save vitals & reschedule appointment</button></section>}
   </form></Modal>;
 }
 

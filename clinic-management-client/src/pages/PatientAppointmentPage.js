@@ -135,7 +135,13 @@ export default function PatientAppointmentPage() {
   const isPhilippineNumber = form.country === "PH";
   const today = new Date().toLocaleDateString("en-CA");
 
-  const update = e => setForm({ ...form, [e.target.name]: e.target.value });
+  const update = e => {
+    const nameFields = ['firstName', 'middleName', 'lastName'];
+    const value = nameFields.includes(e.target.name)
+      ? e.target.value.replace(/[^\p{L}\p{M}' -]/gu, '')
+      : e.target.value;
+    setForm({ ...form, [e.target.name]: value });
+  };
   const submit = async e => {
     e.preventDefault();
     setError("");
@@ -182,7 +188,7 @@ export default function PatientAppointmentPage() {
               <label>Last name<input name="lastName" value={form.lastName} onChange={update} autoComplete="family-name" minLength="2" maxLength="50" required /></label>
             </div>
             <div className="form-row contact-row">
-              <label>Phone number<small>{isPhilippineNumber ? "Philippine mobile number" : "Enter 7 to 15 digits"}</small><div className="phone-fields"><select name="country" value={form.country} onChange={update} aria-label="Country">{countryOptions.map(option => <option key={option.country} value={option.country}>{option.country} {option.code}</option>)}</select><input name="phone" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })} inputMode="numeric" autoComplete="tel-national" pattern={isPhilippineNumber ? "9[0-9]{9}" : "[0-9]{7,15}"} title={isPhilippineNumber ? "Enter 10 digits starting with 9, for example 9123456789." : "Enter 7 to 15 digits."} placeholder={isPhilippineNumber ? "9123456789" : "Phone number"} maxLength={isPhilippineNumber ? "10" : "15"} required /></div></label>
+              <label>Phone number<small>Enter exactly 10 digits</small><div className="phone-fields"><select name="country" value={form.country} onChange={update} aria-label="Country">{countryOptions.map(option => <option key={option.country} value={option.country}>{option.country} {option.code}</option>)}</select><input name="phone" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} inputMode="numeric" autoComplete="tel-national" pattern="[0-9]{10}" title="Enter exactly 10 digits using numbers only." placeholder="9123456789" maxLength="10" required /></div></label>
               <label>Email address <small>We’ll verify this before submitting your request.</small><input name="email" type="email" value={form.email} onChange={update} autoComplete="email" inputMode="email" title="Enter a valid email address, including @." required /></label>
             </div>
             <div className="form-row">

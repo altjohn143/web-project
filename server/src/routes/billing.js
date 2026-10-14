@@ -49,13 +49,7 @@ router.get('/', readAccess, async (req, res, next) => { try {
   res.json({ data: data.map(publicInvoice), total, page, pages: Math.max(Math.ceil(total / limit), 1) });
 } catch (error) { next(error); } });
 
-router.post('/', access, rules, valid, async (req, res, next) => { try {
-  if (req.actor.role === 'superadmin') return res.status(403).json({ message: 'Superadmin billing access is view-only.' });
-  if (!req.body.patient) return res.status(422).json({ message: 'Select a patient before creating a billing record.' });
-  const { subtotal, discountAmount, amount } = totals(req.body);
-  const invoice = await Invoice.create({ patient: req.body.patient, description: req.body.description, dueDate: req.body.dueDate, discountType: req.body.discountType || 'None', paymentMethod: req.body.paymentMethod || 'Cash', subtotal, discountAmount, amount, amountPaid: 0, status: 'Unpaid', createdBy: req.user.id });
-  res.status(201).json(publicInvoice(invoice));
-} catch (error) { next(error); } });
+router.post('/', access, (_req, res) => res.status(403).json({ message: 'Billing records are created automatically after completed consultations.' }));
 
 router.put('/:id', access, rules, valid, async (req, res, next) => { try {
   if (req.actor.role === 'superadmin') return res.status(403).json({ message: 'Superadmin billing access is view-only.' });
