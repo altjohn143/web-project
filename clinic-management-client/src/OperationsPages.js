@@ -7,7 +7,7 @@ import { useAuth } from './AuthContext';
 const patientName = patient => patient ? patient.firstName + ' ' + patient.lastName : 'Deleted patient';
 const receipt = invoice => {
   const popup = window.open('', '_blank', 'width=720,height=820');
-  popup.document.write('<!doctype html><title>ClaraCare Receipt</title><h1>CLARA care</h1><p>Official payment receipt</p><p><b>Patient:</b> ' + patientName(invoice.patient) + '</p><p><b>Description:</b> ' + invoice.description + '</p><p><b>Amount paid:</b> ₱' + Number(invoice.amountPaid || invoice.amount).toFixed(2) + '</p><script>print()<\/script>');
+  popup.document.write('<!doctype html><title>ClaraCare Receipt</title><h1>CLARA care</h1><p>Official payment receipt</p><p><b>Patient:</b> ' + patientName(invoice.patient) + '</p><p><b>Description:</b> ' + invoice.description + '</p><p><b>Amount paid:</b> ₱' + Number(invoice.amountPaid || invoice.amount).toFixed(2) + '</p><script>print()</script>');
   popup.document.close();
 };
 

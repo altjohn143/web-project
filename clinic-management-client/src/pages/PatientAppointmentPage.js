@@ -132,7 +132,6 @@ export default function PatientAppointmentPage() {
   const [code, setCode] = useState("");
   const [timePickerOpen, setTimePickerOpen] = useState(false);
   const selectedCountry = countryOptions.find(option => option.country === form.country);
-  const isPhilippineNumber = form.country === "PH";
   const today = new Date().toLocaleDateString("en-CA");
 
   const update = e => {
